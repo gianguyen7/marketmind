@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+
+# Data (keep structure, ignore contents)
+data/raw/*
+data/interim/*
+data/processed/*
+data/external/*
+!data/*/.gitkeep
+
+# Outputs
+outputs/figures/*
+outputs/tables/*
+outputs/models/*
+outputs/reports/*
+!outputs/*/.gitkeep
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

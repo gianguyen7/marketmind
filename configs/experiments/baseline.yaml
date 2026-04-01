@@ -1,0 +1,8 @@
+experiment:
+  name: "baseline"
+  description: "Base rate and recency baselines only"
+  models:
+    - base_rate
+    - recency
+  features: []
+  use_market_price: false

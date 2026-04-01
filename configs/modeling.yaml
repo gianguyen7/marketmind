@@ -1,0 +1,34 @@
+random_seed: 42
+
+models:
+  base_rate:
+    type: "baseline"
+  recency:
+    type: "baseline"
+    window: 5
+  logistic:
+    type: "logistic"
+    C: 1.0
+    max_iter: 1000
+  random_forest:
+    type: "random_forest"
+    n_estimators: 200
+    max_depth: 8
+    min_samples_leaf: 10
+  xgboost:
+    type: "xgboost"
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+
+evaluation:
+  metrics:
+    - brier_score
+    - log_loss
+    - calibration
+    - sharpness
+  calibration_bins: 10
+  subgroups:
+    - category
+    - days_to_resolution_bucket

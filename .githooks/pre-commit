@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Git pre-commit hook: lint + leakage check
+# Activate: git config core.hooksPath .githooks
+
+set -e
+
+echo "Running pre-commit checks..."
+
+# Lint
+.claude/hooks/lint-python.sh
+
+# Leakage patterns
+.claude/hooks/check-leakage-patterns.sh
+
+echo "Pre-commit checks passed."

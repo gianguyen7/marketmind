@@ -1,0 +1,13 @@
+experiment:
+  name: "ml_only"
+  description: "ML models without Polymarket price features"
+  models:
+    - logistic
+    - random_forest
+    - xgboost
+  features:
+    - days_open
+    - category_encoded
+    - volume_rank
+    - num_outcomes
+  use_market_price: false

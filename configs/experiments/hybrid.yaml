@@ -1,0 +1,16 @@
+experiment:
+  name: "hybrid"
+  description: "ML models with Polymarket features included"
+  models:
+    - logistic
+    - random_forest
+    - xgboost
+  features:
+    - market_price
+    - market_volume
+    - price_momentum
+    - days_open
+    - category_encoded
+    - volume_rank
+    - num_outcomes
+  use_market_price: true
