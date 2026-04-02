@@ -15,6 +15,7 @@ data/raw/*
 data/interim/*
 data/processed/*
 data/external/*
+data/*.duckdb
 !data/*/.gitkeep
 
 # Outputs

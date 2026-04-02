@@ -1,5 +1,24 @@
 # MarketMind — Claude Code Project Instructions
 
+## Memory System
+
+**IMPORTANT: At the start of every conversation, read `memory/recent-memory.md` inline for rolling context. Reference `memory/long-term-memory.md` by path when you need user preferences, permanent decisions, or patterns.**
+
+The memory layer has three tiers:
+
+| File | Purpose | Loaded |
+|------|---------|--------|
+| `memory/recent-memory.md` | Rolling 48-hour context: current focus, recent decisions, open threads | **Always read at startup** |
+| `memory/long-term-memory.md` | Distilled facts, preferences, and permanent decisions | Read by path when needed |
+| `memory/project-memory.md` | Active project state, architecture snapshot, phase status | Read by path when needed |
+
+**Updating memory:**
+- Update `recent-memory.md` at the end of any conversation where decisions were made or significant progress occurred
+- Run `/consolidate-memory` to promote important items from recent → long-term and refresh all files
+- A nightly scheduled job runs `/consolidate-memory` automatically at 11 PM ET
+
+---
+
 ## What This Is
 Probabilistic forecasting research comparing Polymarket crowd probabilities against ML and hybrid models. Focus: calibration, backtesting, temporal leakage prevention, and forecast comparison.
 
@@ -26,12 +45,18 @@ Agents live in `.claude/agents/`. Use them for scoped, parallelizable work:
 - `report-agent` — generate figures, tables, dashboard updates
 
 ## Skills (Slash Commands)
-Skills live in `.claude/skills/`. Invoke with `/skill-name`:
+
+### Project-specific skills (`.claude/skills/`)
 - `/build-polymarket-dataset` — end-to-end dataset construction
 - `/run-forecast-experiment` — train + evaluate a named experiment
 - `/analyze-calibration` — calibration analysis across models
 - `/summarize-results` — generate results summary table
 - `/build-streamlit-dashboard` — scaffold or update the Streamlit app
+
+### Cross-project skills (inherited from `../../.claude/commands/`)
+- `/consolidate-memory` — consolidate recent activity into memory layer
+- `/research-scout` — search web for new info that challenges or extends project knowledge
+- `/promote-learnings` — weekly review: promote confirmed findings from staging to permanent memory
 
 ## Hooks
 Configured in `.claude/settings.local.json`. Lightweight checks:
@@ -52,4 +77,5 @@ src/dashboard/     Streamlit app
 scripts/           CLI entry points
 tests/             pytest suite
 outputs/           Figures, tables, models, reports
+memory/            Persistent memory layer (recent, long-term, project)
 ```

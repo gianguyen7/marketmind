@@ -18,11 +18,24 @@ polymarket:
     interval_hours: 12  # matches fidelity=720
     min_snapshots_per_market: 5
 
+  # Resilience settings
+  retry:
+    max_retries: 3
+    base_delay_sec: 1.0       # exponential backoff: delay * 2^attempt
+    max_delay_sec: 30.0
+    retry_on_status: [429, 500, 502, 503, 504]
+  rate_limit:
+    delay_between_requests_sec: 0.4   # polite crawl delay
+  checkpoint:
+    enabled: true
+    path: "data/raw/.checkpoint_snapshots.json"
+
 data_pipeline:
   raw_dir: "data/raw"
   interim_dir: "data/interim"
   processed_dir: "data/processed"
   external_dir: "data/external"
+  duckdb_path: "data/marketmind.duckdb"
 
 dataset:
   target_col: "resolved_yes"
