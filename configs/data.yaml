@@ -42,6 +42,10 @@ dataset:
   time_col: "snapshot_ts"
   market_id_col: "condition_id"
   meeting_id_col: "meeting_date"  # for grouping Fed rate variants
-  # Temporal split — train on 2024 meetings, test on 2025+
-  train_cutoff: "2025-01-01"
-  test_cutoff: "2025-07-01"
+
+  # Event-group temporal split — correlated markets stay together
+  split:
+    strategy: "event_group_temporal"
+    train_frac: 0.6
+    val_frac: 0.2
+    # test gets the remainder (~0.2)

@@ -1,0 +1,11 @@
+experiment:
+  name: "market_correction"
+  description: "Can ML predict where the market is wrong? Regression on market error using cross-market features."
+  task: "regression"
+  target: "market_error"
+  models:
+    - linear_regression
+    - random_forest_regressor
+    - xgboost_regressor
+  feature_set: "correction"
+  use_market_price: false

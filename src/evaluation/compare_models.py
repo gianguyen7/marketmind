@@ -1,10 +1,14 @@
-"""Compare models across multiple evaluation metrics."""
+"""Compare models across multiple evaluation metrics.
+
+Supports both snapshot-level (n=25K) and market-level (n=95) evaluation,
+with Brier decomposition (reliability + resolution + uncertainty).
+"""
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import brier_score_loss, log_loss
 
-from src.evaluation.calibration import calibration_error, sharpness
+from src.evaluation.calibration import brier_decomposition, calibration_error, sharpness
 
 
 def evaluate_predictions(
@@ -19,18 +23,62 @@ def evaluate_predictions(
 
     y_prob_clipped = np.clip(y_prob, 1e-7, 1 - 1e-7)
     sharp = sharpness(y_prob)
+    decomp = brier_decomposition(y_true, y_prob_clipped)
 
     return {
         "model": model_name,
         "split": split,
         "n": len(y_true),
-        "brier_score": brier_score_loss(y_true, y_prob_clipped),
+        "brier_score": decomp["brier_score"],
+        "reliability": decomp["reliability"],
+        "resolution": decomp["resolution"],
+        "uncertainty": decomp["uncertainty"],
         "log_loss": log_loss(y_true, y_prob_clipped, labels=[0, 1]),
-        "calibration_error": calibration_error(y_true, y_prob_clipped),
+        "ece": calibration_error(y_true, y_prob_clipped),
         "mean_sharpness": sharp["mean_sharpness"],
         "pct_confident": sharp["pct_confident"],
         "base_rate": float(y_true.mean()),
         "mean_prediction": float(y_prob.mean()),
+    }
+
+
+def evaluate_market_level(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    market_ids: np.ndarray,
+    model_name: str = "",
+    split: str = "test",
+) -> dict:
+    """Evaluate at market level: one prediction per market (last snapshot).
+
+    This gives honest performance metrics on n=number_of_markets independent outcomes,
+    rather than inflated metrics from correlated snapshots of the same market.
+    """
+    df = pd.DataFrame({"market_id": market_ids, "y_true": y_true, "y_prob": y_prob})
+
+    # Take last row per market (most recent snapshot)
+    market_df = df.groupby("market_id").last().reset_index()
+    y_true_mkt = market_df["y_true"].values
+    y_prob_mkt = np.clip(market_df["y_prob"].values, 1e-7, 1 - 1e-7)
+
+    n_markets = len(market_df)
+    if n_markets == 0:
+        return {"model": model_name, "split": f"{split}_market_level", "n": 0}
+
+    decomp = brier_decomposition(y_true_mkt, y_prob_mkt)
+
+    return {
+        "model": model_name,
+        "split": f"{split}_market_level",
+        "n": n_markets,
+        "brier_score": decomp["brier_score"],
+        "reliability": decomp["reliability"],
+        "resolution": decomp["resolution"],
+        "uncertainty": decomp["uncertainty"],
+        "log_loss": log_loss(y_true_mkt, y_prob_mkt, labels=[0, 1]) if n_markets > 1 else 0.0,
+        "ece": calibration_error(y_true_mkt, y_prob_mkt),
+        "base_rate": float(y_true_mkt.mean()),
+        "mean_prediction": float(y_prob_mkt.mean()),
     }
 
 

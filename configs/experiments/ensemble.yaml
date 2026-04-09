@@ -1,0 +1,11 @@
+experiment:
+  name: "ensemble"
+  description: "Does blending ML correction with market price improve calibration?"
+  task: "classification"
+  target: "resolved_yes"
+  models:
+    - logistic
+    - random_forest
+    - xgboost
+  feature_set: "ensemble"
+  use_market_price: true
