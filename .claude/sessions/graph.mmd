@@ -1,0 +1,69 @@
+graph LR
+    classDef session fill:#e1f5fe,stroke:#0288d1
+    classDef decision fill:#fff3e0,stroke:#f57c00
+    classDef plan fill:#e8f5e9,stroke:#388e3c
+    classDef file fill:#f3e5f5,stroke:#7b1fa2
+    classDef project fill:#fce4ec,stroke:#c62828
+    classDef concept fill:#e0e0e0,stroke:#616161
+
+    session_2026_04_12_2230(("A1/A2 drill-down, regime-invariance reframe, B1..."))
+    class session_2026_04_12_2230 session
+    project_marketmind["MarketMind probabilistic forecasting"]
+    class project_marketmind project
+    decision_regime_invariance{"Adopt regime-invariance discipline as primary r..."}
+    class decision_regime_invariance decision
+    decision_a2_rejected{"A2 shutdown mechanism rejected by pre-registere..."}
+    class decision_a2_rejected decision
+    decision_b1_scope_trim{"Trim B1 scope after discovering existing fetch_..."}
+    class decision_b1_scope_trim decision
+    decision_empirical_a2_threshold{"A2 population: empirical bottom-25% volume, not..."}
+    class decision_empirical_a2_threshold decision
+    decision_gamma_no_curated_rerun{"--gamma-fetch must NOT re-run curated pipeline"}
+    class decision_gamma_no_curated_rerun decision
+    plan_b3_stratified_split(["B3: theme-stratified temporal split on 5000-mar..."])
+    class plan_b3_stratified_split plan
+    plan_b5_walkforward(["B5: walk-forward validation of structural hypot..."])
+    class plan_b5_walkforward plan
+    file_analyze_shutdown[["scripts/analyze_government_shutdown.py"]]
+    class file_analyze_shutdown file
+    file_shutdown_hypothesis[["docs/shutdown_hypothesis_2026-04-11.md"]]
+    class file_shutdown_hypothesis file
+    file_research_plan[["docs/research_plan.md"]]
+    class file_research_plan file
+    file_execution_plan[["docs/execution_plan.md"]]
+    class file_execution_plan file
+    file_results_summary[["docs/results_summary.md"]]
+    class file_results_summary file
+    file_build_dataset[["src/data/build_dataset.py"]]
+    class file_build_dataset file
+    file_run_data_pipeline[["scripts/run_data_pipeline.py"]]
+    class file_run_data_pipeline file
+    file_fetch_gamma[["src/data/fetch_gamma.py"]]
+    class file_fetch_gamma file
+    file_data_yaml[["configs/data.yaml"]]
+    class file_data_yaml file
+    file_gamma_markets[["data/raw/gamma_markets.parquet"]]
+    class file_gamma_markets file
+    file_gamma_snapshots[["data/raw/gamma_snapshots.parquet"]]
+    class file_gamma_snapshots file
+
+    session_2026_04_12_2230 -->|led_to| decision_regime_invariance
+    session_2026_04_12_2230 -->|led_to| decision_a2_rejected
+    session_2026_04_12_2230 -->|led_to| decision_b1_scope_trim
+    session_2026_04_12_2230 -->|led_to| decision_empirical_a2_threshold
+    session_2026_04_12_2230 -->|led_to| decision_gamma_no_curated_rerun
+    session_2026_04_12_2230 -->|modified| file_analyze_shutdown
+    session_2026_04_12_2230 -->|modified| file_shutdown_hypothesis
+    session_2026_04_12_2230 -->|modified| file_research_plan
+    session_2026_04_12_2230 -->|modified| file_execution_plan
+    session_2026_04_12_2230 -->|modified| file_results_summary
+    session_2026_04_12_2230 -->|modified| file_build_dataset
+    session_2026_04_12_2230 -->|modified| file_run_data_pipeline
+    session_2026_04_12_2230 -->|modified| file_fetch_gamma
+    session_2026_04_12_2230 -->|modified| file_data_yaml
+    session_2026_04_12_2230 -->|modified| file_gamma_markets
+    session_2026_04_12_2230 -->|modified| file_gamma_snapshots
+    session_2026_04_12_2230 -->|part_of| project_marketmind
+    plan_b5_walkforward -->|depends_on| plan_b3_stratified_split
+    plan_b5_walkforward -->|depends_on| decision_regime_invariance
+    decision_a2_rejected -->|led_to| plan_b5_walkforward

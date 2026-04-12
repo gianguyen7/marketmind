@@ -1,0 +1,40 @@
+{"kind":"node","id":"session:2026-04-12-2230","type":"session","label":"A1/A2 drill-down, regime-invariance reframe, B1 Gamma fetch","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"project:marketmind","type":"project","label":"MarketMind probabilistic forecasting","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"decision:regime-invariance","type":"decision","label":"Adopt regime-invariance discipline as primary research framing","date":"2026-04-12","meta":{"reason":"Financial time series are non-stationary; backtest edges may not survive regime change. Structural hypotheses + walk-forward validation required."}}
+{"kind":"node","id":"decision:a2-rejected","type":"decision","label":"A2 shutdown mechanism rejected by pre-registered criteria","date":"2026-04-12","meta":{"reason":"Sign flip on 2 primaries (train=2 markets), secondary dominates. Split underpowered, not mechanism wrong. Deferred to B5."}}
+{"kind":"node","id":"decision:b1-scope-trim","type":"decision","label":"Trim B1 scope after discovering existing fetch_gamma.py","date":"2026-04-12","meta":{"reason":"Execution plan was stale; most code already existed. Only B1b/B1e/B1f needed."}}
+{"kind":"node","id":"decision:empirical-a2-threshold","type":"decision","label":"A2 population: empirical bottom-25% volume, not absolute $100k","date":"2026-04-12","meta":{"reason":"Dry-run showed min volume at $1M floor was $53M; absolute thresholds meaningless."}}
+{"kind":"node","id":"decision:gamma-no-curated-rerun","type":"decision","label":"--gamma-fetch must NOT re-run curated pipeline","date":"2026-04-12","meta":{"reason":"Would overwrite data/processed/ which is frozen until Track B3."}}
+{"kind":"node","id":"plan:b3-stratified-split","type":"plan","label":"B3: theme-stratified temporal split on 5000-market data","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:b5-walkforward","type":"plan","label":"B5: walk-forward validation of structural hypothesis","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:analyze-shutdown","type":"file","label":"scripts/analyze_government_shutdown.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:shutdown-hypothesis","type":"file","label":"docs/shutdown_hypothesis_2026-04-11.md","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:research-plan","type":"file","label":"docs/research_plan.md","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:execution-plan","type":"file","label":"docs/execution_plan.md","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:results-summary","type":"file","label":"docs/results_summary.md","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:build-dataset","type":"file","label":"src/data/build_dataset.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-data-pipeline","type":"file","label":"scripts/run_data_pipeline.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:fetch-gamma","type":"file","label":"src/data/fetch_gamma.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:data-yaml","type":"file","label":"configs/data.yaml","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:gamma-markets","type":"file","label":"data/raw/gamma_markets.parquet","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:gamma-snapshots","type":"file","label":"data/raw/gamma_snapshots.parquet","date":"2026-04-12","meta":{}}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"decision:regime-invariance","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"decision:a2-rejected","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"decision:b1-scope-trim","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"decision:empirical-a2-threshold","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"decision:gamma-no-curated-rerun","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:analyze-shutdown","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:shutdown-hypothesis","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:research-plan","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:execution-plan","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:results-summary","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:build-dataset","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:run-data-pipeline","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:fetch-gamma","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:data-yaml","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:gamma-markets","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"file:gamma-snapshots","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-2230","to":"project:marketmind","type":"part_of","date":"2026-04-12"}
+{"kind":"edge","from":"plan:b5-walkforward","to":"plan:b3-stratified-split","type":"depends_on","date":"2026-04-12"}
+{"kind":"edge","from":"plan:b5-walkforward","to":"decision:regime-invariance","type":"depends_on","date":"2026-04-12"}
+{"kind":"edge","from":"decision:a2-rejected","to":"plan:b5-walkforward","type":"led_to","date":"2026-04-12"}
