@@ -38,3 +38,51 @@
 {"kind":"edge","from":"plan:b5-walkforward","to":"plan:b3-stratified-split","type":"depends_on","date":"2026-04-12"}
 {"kind":"edge","from":"plan:b5-walkforward","to":"decision:regime-invariance","type":"depends_on","date":"2026-04-12"}
 {"kind":"edge","from":"decision:a2-rejected","to":"plan:b5-walkforward","type":"led_to","date":"2026-04-12"}
+{"kind":"node","id":"session:2026-04-12-1700","type":"session","label":"B3 split, B5 walk-forward, calibration, C1/C4 models","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"decision:b3-completed","type":"decision","label":"B3 per-category temporal split completed (4538 markets)","date":"2026-04-12","meta":{"reason":"60/20/20 within 11 categories, cross-category event groups reconciled, all leakage checks pass"}}
+{"kind":"node","id":"decision:b5-not-confirmed","type":"decision","label":"B5 structural hypothesis NOT CONFIRMED on expanded data","date":"2026-04-12","meta":{"reason":"2/3 signals confirm but log_volume flips (range restriction). Alpha-shift rule loses money. Identification problem unsolved."}}
+{"kind":"node","id":"decision:pivot-to-calibration","type":"decision","label":"Pivot from exploit mispricing to calibration characterization","date":"2026-04-12","meta":{"reason":"Structural hypothesis real but not actionable. F-L bias too small. Research value is characterization."}}
+{"kind":"node","id":"decision:c1-near-zero","type":"decision","label":"C1 calibration correction: near-zero improvement (0.0001 Brier)","date":"2026-04-12","meta":{"reason":"Market reliability 0.0004 already near-optimal. More granular models overfit."}}
+{"kind":"node","id":"decision:c4-small-improvement","type":"decision","label":"C4 trajectory dynamics: small improvement (0.0006 Brier, 0.7%)","date":"2026-04-12","meta":{"reason":"Hybrid (45% XGB + 55% market) helps marginally. Standalone model worse than naive."}}
+{"kind":"node","id":"decision:market-is-efficient","type":"decision","label":"Polymarket is efficient \u2014 four exploitation attempts failed","date":"2026-04-12","meta":{"reason":"Structural rules, calibration correction, global ML, trajectory dynamics all fail to meaningfully beat naive market price."}}
+{"kind":"node","id":"decision:category-classifier-improved","type":"decision","label":"Category classifier improved: other 17% -> 5%, added social_media","date":"2026-04-12","meta":{"reason":"Added social_media (172 mkts), expanded sports/politics/crypto/entertainment/science/economy patterns"}}
+{"kind":"node","id":"plan:c2-dashboard","type":"plan","label":"C2: Streamlit dashboard for calibration findings","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:c3-writeup","type":"plan","label":"C3: Research write-up / report","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:backlog-event-group","type":"plan","label":"Backlog: event group cross-market dynamics","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:backlog-vol-price","type":"plan","label":"Backlog: volume-price divergence","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:backlog-surprise","type":"plan","label":"Backlog: resolution surprise prediction","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"plan:backlog-convergence","type":"plan","label":"Backlog: convergence speed prediction","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-b3-split","type":"file","label":"scripts/run_b3_split.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-b5-walkforward","type":"file","label":"scripts/run_b5_walkforward.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-calibration","type":"file","label":"scripts/run_calibration_analysis.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-c1-recalibration","type":"file","label":"scripts/run_c1_recalibration.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:run-c4-trajectory","type":"file","label":"scripts/run_c4_trajectory.py","date":"2026-04-12","meta":{}}
+{"kind":"node","id":"file:settings-local","type":"file","label":".claude/settings.local.json","date":"2026-04-12","meta":{}}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:b3-completed","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:b5-not-confirmed","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:pivot-to-calibration","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:c1-near-zero","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:c4-small-improvement","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:market-is-efficient","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"decision:category-classifier-improved","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:run-b3-split","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:run-b5-walkforward","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:run-calibration","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:run-c1-recalibration","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:run-c4-trajectory","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:fetch-gamma","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:execution-plan","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:results-summary","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:settings-local","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"file:gamma-markets","type":"modified","date":"2026-04-12"}
+{"kind":"edge","from":"session:2026-04-12-1700","to":"project:marketmind","type":"part_of","date":"2026-04-12"}
+{"kind":"edge","from":"decision:b5-not-confirmed","to":"decision:pivot-to-calibration","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"decision:c1-near-zero","to":"decision:market-is-efficient","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"decision:c4-small-improvement","to":"decision:market-is-efficient","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"decision:pivot-to-calibration","to":"decision:c1-near-zero","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"decision:pivot-to-calibration","to":"decision:regime-invariance","type":"supersedes","date":"2026-04-12"}
+{"kind":"edge","from":"decision:market-is-efficient","to":"decision:pivot-to-calibration","type":"supersedes","date":"2026-04-12"}
+{"kind":"edge","from":"plan:c2-dashboard","to":"decision:market-is-efficient","type":"depends_on","date":"2026-04-12"}
+{"kind":"edge","from":"plan:c3-writeup","to":"plan:c2-dashboard","type":"depends_on","date":"2026-04-12"}
+{"kind":"edge","from":"plan:b3-stratified-split","to":"decision:b3-completed","type":"led_to","date":"2026-04-12"}
+{"kind":"edge","from":"plan:b5-walkforward","to":"decision:b5-not-confirmed","type":"led_to","date":"2026-04-12"}
