@@ -103,3 +103,39 @@
 {"kind":"edge","from":"plan:dashboard-polish","to":"decision:market-is-efficient","type":"depends_on","date":"2026-04-15"}
 {"kind":"edge","from":"plan:c2-dashboard","to":"plan:dashboard-polish","type":"led_to","date":"2026-04-15"}
 {"kind":"edge","from":"decision:clob-v2-data-loss","to":"decision:dataset-irreplaceable","type":"led_to","date":"2026-04-15"}
+{"kind": "node", "id": "session:2026-04-20-0100", "type": "session", "label": "Replace Streamlit with design system UI + one-pager", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "decision:static-react-no-build", "type": "decision", "label": "Static React via CDN + Babel standalone, no build tools", "date": "2026-04-20", "meta": {"reason": "User preferred simplicity. React 18.3.1 + Babel transpiles JSX in-browser."}}
+{"kind": "node", "id": "decision:wire-csv-json-data", "type": "decision", "label": "Wire dashboard to existing CSV/JSON outputs via fetch", "date": "2026-04-20", "meta": {"reason": "User wanted real data, not hardcoded. Fetches from outputs/tables/ with caching."}}
+{"kind": "node", "id": "decision:replace-streamlit", "type": "decision", "label": "Replace Streamlit dashboard with static HTML/React SPA", "date": "2026-04-20", "meta": {"reason": "User directive. Old app.py preserved as app.py.bak."}}
+{"kind": "node", "id": "decision:no-dashes-copywriting", "type": "decision", "label": "Remove all em/en dashes from copywriting", "date": "2026-04-20", "meta": {"reason": "User preference. Replace with periods, commas, parentheses."}}
+{"kind": "node", "id": "decision:friendly-model-names", "type": "decision", "label": "Use friendly model names with non-technical tooltips", "date": "2026-04-20", "meta": {"reason": "User wanted displayable names like Global isotonic instead of isotonic_global."}}
+{"kind": "node", "id": "plan:fix-onepager-spacing", "type": "plan", "label": "Fix content and spacing of the one-pager", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-index", "type": "file", "label": "src/dashboard/index.html", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-styles", "type": "file", "label": "src/dashboard/styles.css", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-colors", "type": "file", "label": "src/dashboard/colors_and_type.css", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-dataloader", "type": "file", "label": "src/dashboard/DataLoader.jsx", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-primitives", "type": "file", "label": "src/dashboard/Primitives.jsx", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-charts", "type": "file", "label": "src/dashboard/Charts.jsx", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-sidebar", "type": "file", "label": "src/dashboard/Sidebar.jsx", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-pages", "type": "file", "label": "src/dashboard/Pages.jsx", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-onepager", "type": "file", "label": "src/dashboard/one-pager.html", "date": "2026-04-20", "meta": {}}
+{"kind": "node", "id": "file:dashboard-serve", "type": "file", "label": "src/dashboard/serve.py", "date": "2026-04-20", "meta": {}}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "decision:static-react-no-build", "type": "led_to", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "decision:wire-csv-json-data", "type": "led_to", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "decision:replace-streamlit", "type": "led_to", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "decision:no-dashes-copywriting", "type": "led_to", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "decision:friendly-model-names", "type": "led_to", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-index", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-styles", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-colors", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-dataloader", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-primitives", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-charts", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-sidebar", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-pages", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-onepager", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "file:dashboard-serve", "type": "modified", "date": "2026-04-20"}
+{"kind": "edge", "from": "session:2026-04-20-0100", "to": "project:marketmind", "type": "part_of", "date": "2026-04-20"}
+{"kind": "edge", "from": "decision:replace-streamlit", "to": "decision:dashboard-narrative-polish", "type": "supersedes", "date": "2026-04-20"}
+{"kind": "edge", "from": "plan:fix-onepager-spacing", "to": "decision:replace-streamlit", "type": "depends_on", "date": "2026-04-20"}
+{"kind": "edge", "from": "decision:replace-streamlit", "to": "plan:c2-dashboard", "type": "supersedes", "date": "2026-04-20"}

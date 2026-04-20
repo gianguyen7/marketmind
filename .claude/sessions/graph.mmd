@@ -1,51 +1,68 @@
 graph LR
-    decision_a2_rejected[/"A2 shutdown mechanism rejected by pre-registere..."/]
-    decision_b1_scope_trim[/"Trim B1 scope after discovering existing fetch_..."/]
-    decision_b3_completed[/"B3 per-category temporal split completed (4538 ..."/]
-    decision_b5_not_confirmed[/"B5 structural hypothesis NOT CONFIRMED on expan..."/]
-    decision_c1_near_zero[/"C1 calibration correction: near-zero improvemen..."/]
-    decision_c4_small_improvement[/"C4 trajectory dynamics: small improvement (0.00..."/]
-    decision_category_classifier_improved[/"Category classifier improved: other 17% -> 5%, ..."/]
-    decision_clob_v2_data_loss[/"CLOB v2 migration caused price history truncati..."/]
-    decision_dashboard_narrative_polish[/"Next session: polish dashboard for non-technica..."/]
-    decision_dataset_irreplaceable[/"Our 640K snapshot dataset is irreplaceable thro..."/]
-    decision_empirical_a2_threshold[/"A2 population: empirical bottom-25% volume, not..."/]
-    decision_gamma_no_curated_rerun[/"--gamma-fetch must NOT re-run curated pipeline"/]
-    decision_market_is_efficient[/"Polymarket is efficient — four exploitation att..."/]
-    decision_pivot_to_calibration[/"Pivot from exploit mispricing to calibration ch..."/]
-    decision_regime_invariance[/"Adopt regime-invariance discipline as primary r..."/]
-    file_analyze_shutdown[("scripts/analyze_government_shutdown.py")]
-    file_build_dataset[("src/data/build_dataset.py")]
-    file_dashboard_app[("src/dashboard/app.py")]
-    file_data_availability_doc[("docs/polymarket_data_availability.md")]
-    file_data_yaml[("configs/data.yaml")]
-    file_execution_plan[("docs/execution_plan.md")]
-    file_fetch_gamma[("src/data/fetch_gamma.py")]
-    file_gamma_markets[("data/raw/gamma_markets.parquet")]
-    file_gamma_snapshots[("data/raw/gamma_snapshots.parquet")]
-    file_research_plan[("docs/research_plan.md")]
-    file_results_summary[("docs/results_summary.md")]
-    file_run_b3_split[("scripts/run_b3_split.py")]
-    file_run_b5_walkforward[("scripts/run_b5_walkforward.py")]
-    file_run_c1_recalibration[("scripts/run_c1_recalibration.py")]
-    file_run_c4_trajectory[("scripts/run_c4_trajectory.py")]
-    file_run_calibration[("scripts/run_calibration_analysis.py")]
-    file_run_data_pipeline[("scripts/run_data_pipeline.py")]
-    file_settings_local[(".claude/settings.local.json")]
-    file_shutdown_hypothesis[("docs/shutdown_hypothesis_2026-04-11.md")]
-    plan_b3_stratified_split[["B3: theme-stratified temporal split on 5000-mar..."]]
-    plan_b5_walkforward[["B5: walk-forward validation of structural hypot..."]]
-    plan_backlog_convergence[["Backlog: convergence speed prediction"]]
-    plan_backlog_event_group[["Backlog: event group cross-market dynamics"]]
-    plan_backlog_surprise[["Backlog: resolution surprise prediction"]]
-    plan_backlog_vol_price[["Backlog: volume-price divergence"]]
-    plan_c2_dashboard[["C2: Streamlit dashboard for calibration findings"]]
-    plan_c3_writeup[["C3: Research write-up / report"]]
-    plan_dashboard_polish[["Polish Streamlit dashboard for non-technical au..."]]
-    project_marketmind{{"MarketMind probabilistic forecasting"}}
-    session_2026_04_12_1700(["B3 split, B5 walk-forward, calibration, C1/C4 m..."])
-    session_2026_04_12_2230(["A1/A2 drill-down, regime-invariance reframe, B1..."])
-    session_2026_04_15_2100(["API investigation, data availability docs, Stre..."])
+    file_dashboard_styles[src/dashboard/styles.css]
+    file_research_plan[docs/research_plan.md]
+    project_marketmind((MarketMind probabilistic forecasting))
+    file_execution_plan[docs/execution_plan.md]
+    plan_backlog_convergence[/Backlog: convergence speed prediction\]
+    file_dashboard_index[src/dashboard/index.html]
+    file_dashboard_serve[src/dashboard/serve.py]
+    plan_backlog_event_group[/Backlog: event group cross-market dynamics\]
+    plan_b5_walkforward[/B5: walk-forward validation of structural hypothes\]
+    file_results_summary[docs/results_summary.md]
+    plan_backlog_vol_price[/Backlog: volume-price divergence\]
+    file_shutdown_hypothesis[docs/shutdown_hypothesis_2026-04-11.md]
+    plan_fix_onepager_spacing[/Fix content and spacing of the one-pager\]
+    plan_b3_stratified_split[/B3: theme-stratified temporal split on 5000-market\]
+    file_dashboard_app[src/dashboard/app.py]
+    file_run_calibration[scripts/run_calibration_analysis.py]
+    file_run_c4_trajectory[scripts/run_c4_trajectory.py]
+    file_analyze_shutdown[scripts/analyze_government_shutdown.py]
+    decision_c4_small_improvement{C4 trajectory dynamics: small improvement 0.0006 B}
+    decision_no_dashes_copywriting{Remove all em/en dashes from copywriting}
+    file_dashboard_pages[src/dashboard/Pages.jsx]
+    decision_a2_rejected{A2 shutdown mechanism rejected by pre-registered c}
+    decision_b1_scope_trim{Trim B1 scope after discovering existing fetch_gam}
+    decision_category_classifier_improved{Category classifier improved: other 17% -> 5%, add}
+    file_gamma_markets[data/raw/gamma_markets.parquet]
+    session_2026_04_12_2230([A1/A2 drill-down, regime-invariance reframe, B1 Ga])
+    file_gamma_snapshots[data/raw/gamma_snapshots.parquet]
+    decision_replace_streamlit{Replace Streamlit dashboard with static HTML/React}
+    plan_backlog_surprise[/Backlog: resolution surprise prediction\]
+    plan_c3_writeup[/C3: Research write-up / report\]
+    session_2026_04_12_1700([B3 split, B5 walk-forward, calibration, C1/C4 mode])
+    session_2026_04_15_2100([API investigation, data availability docs, Streaml])
+    decision_gamma_no_curated_rerun{--gamma-fetch must NOT re-run curated pipeline}
+    decision_dataset_irreplaceable{Our 640K snapshot dataset is irreplaceable through}
+    decision_market_is_efficient{Polymarket is efficient — four exploitation attemp}
+    plan_dashboard_polish[/Polish Streamlit dashboard for non-technical audie\]
+    file_build_dataset[src/data/build_dataset.py]
+    decision_pivot_to_calibration{Pivot from exploit mispricing to calibration chara}
+    file_dashboard_colors[src/dashboard/colors_and_type.css]
+    file_dashboard_dataloader[src/dashboard/DataLoader.jsx]
+    file_dashboard_onepager[src/dashboard/one-pager.html]
+    file_run_c1_recalibration[scripts/run_c1_recalibration.py]
+    decision_b3_completed{B3 per-category temporal split completed 4538 mark}
+    file_run_b3_split[scripts/run_b3_split.py]
+    plan_c2_dashboard[/C2: Streamlit dashboard for calibration findings\]
+    file_run_b5_walkforward[scripts/run_b5_walkforward.py]
+    file_settings_local[.claude/settings.local.json]
+    decision_b5_not_confirmed{B5 structural hypothesis NOT CONFIRMED on expanded}
+    session_2026_04_20_0100([Replace Streamlit with design system UI + one-page])
+    decision_static_react_no_build{Static React via CDN + Babel standalone, no build }
+    file_dashboard_primitives[src/dashboard/Primitives.jsx]
+    decision_clob_v2_data_loss{CLOB v2 migration caused price history truncation }
+    decision_regime_invariance{Adopt regime-invariance discipline as primary rese}
+    file_data_yaml[configs/data.yaml]
+    file_data_availability_doc[docs/polymarket_data_availability.md]
+    file_fetch_gamma[src/data/fetch_gamma.py]
+    decision_empirical_a2_threshold{A2 population: empirical bottom-25% volume, not ab}
+    decision_friendly_model_names{Use friendly model names with non-technical toolti}
+    file_dashboard_charts[src/dashboard/Charts.jsx]
+    file_dashboard_sidebar[src/dashboard/Sidebar.jsx]
+    file_run_data_pipeline[scripts/run_data_pipeline.py]
+    decision_wire_csv_json_data{Wire dashboard to existing CSV/JSON outputs via fe}
+    decision_dashboard_narrative_polish{Next session: polish dashboard for non-technical a}
+    decision_c1_near_zero{C1 calibration correction: near-zero improvement 0}
     session_2026_04_12_2230 -->|led_to| decision_regime_invariance
     session_2026_04_12_2230 -->|led_to| decision_a2_rejected
     session_2026_04_12_2230 -->|led_to| decision_b1_scope_trim
@@ -104,3 +121,22 @@ graph LR
     plan_dashboard_polish -->|depends_on| decision_market_is_efficient
     plan_c2_dashboard -->|led_to| plan_dashboard_polish
     decision_clob_v2_data_loss -->|led_to| decision_dataset_irreplaceable
+    session_2026_04_20_0100 -->|led_to| decision_static_react_no_build
+    session_2026_04_20_0100 -->|led_to| decision_wire_csv_json_data
+    session_2026_04_20_0100 -->|led_to| decision_replace_streamlit
+    session_2026_04_20_0100 -->|led_to| decision_no_dashes_copywriting
+    session_2026_04_20_0100 -->|led_to| decision_friendly_model_names
+    session_2026_04_20_0100 -->|modified| file_dashboard_index
+    session_2026_04_20_0100 -->|modified| file_dashboard_styles
+    session_2026_04_20_0100 -->|modified| file_dashboard_colors
+    session_2026_04_20_0100 -->|modified| file_dashboard_dataloader
+    session_2026_04_20_0100 -->|modified| file_dashboard_primitives
+    session_2026_04_20_0100 -->|modified| file_dashboard_charts
+    session_2026_04_20_0100 -->|modified| file_dashboard_sidebar
+    session_2026_04_20_0100 -->|modified| file_dashboard_pages
+    session_2026_04_20_0100 -->|modified| file_dashboard_onepager
+    session_2026_04_20_0100 -->|modified| file_dashboard_serve
+    session_2026_04_20_0100 -->|part_of| project_marketmind
+    decision_replace_streamlit -->|supersedes| decision_dashboard_narrative_polish
+    plan_fix_onepager_spacing -->|depends_on| decision_replace_streamlit
+    decision_replace_streamlit -->|supersedes| plan_c2_dashboard
