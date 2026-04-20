@@ -86,3 +86,20 @@
 {"kind":"edge","from":"plan:c3-writeup","to":"plan:c2-dashboard","type":"depends_on","date":"2026-04-12"}
 {"kind":"edge","from":"plan:b3-stratified-split","to":"decision:b3-completed","type":"led_to","date":"2026-04-12"}
 {"kind":"edge","from":"plan:b5-walkforward","to":"decision:b5-not-confirmed","type":"led_to","date":"2026-04-12"}
+{"kind":"node","id":"session:2026-04-15-2100","type":"session","label":"API investigation, data availability docs, Streamlit dashboard","date":"2026-04-15","meta":{}}
+{"kind":"node","id":"decision:clob-v2-data-loss","type":"decision","label":"CLOB v2 migration caused price history truncation to 31-day window","date":"2026-04-15","meta":{"reason":"Tested APIs directly; closed markets return empty, active markets capped at 31 days. Migration started April 6."}}
+{"kind":"node","id":"decision:dataset-irreplaceable","type":"decision","label":"Our 640K snapshot dataset is irreplaceable through current APIs","date":"2026-04-15","meta":{"reason":"1879 markets have >31d span, max 674d. CLOB v2 only serves 31 days for active markets."}}
+{"kind":"node","id":"decision:dashboard-narrative-polish","type":"decision","label":"Next session: polish dashboard for non-technical audience with storytelling","date":"2026-04-15","meta":{"reason":"Current dashboard assumes familiarity with Brier, ECE, reliability. Needs plain-English for broader audience."}}
+{"kind":"node","id":"plan:dashboard-polish","type":"plan","label":"Polish Streamlit dashboard for non-technical audience","date":"2026-04-15","meta":{}}
+{"kind":"node","id":"file:data-availability-doc","type":"file","label":"docs/polymarket_data_availability.md","date":"2026-04-15","meta":{}}
+{"kind":"node","id":"file:dashboard-app","type":"file","label":"src/dashboard/app.py","date":"2026-04-15","meta":{}}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"decision:clob-v2-data-loss","type":"led_to","date":"2026-04-15"}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"decision:dataset-irreplaceable","type":"led_to","date":"2026-04-15"}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"decision:dashboard-narrative-polish","type":"led_to","date":"2026-04-15"}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"file:data-availability-doc","type":"modified","date":"2026-04-15"}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"file:dashboard-app","type":"modified","date":"2026-04-15"}
+{"kind":"edge","from":"session:2026-04-15-2100","to":"project:marketmind","type":"part_of","date":"2026-04-15"}
+{"kind":"edge","from":"decision:dashboard-narrative-polish","to":"plan:dashboard-polish","type":"led_to","date":"2026-04-15"}
+{"kind":"edge","from":"plan:dashboard-polish","to":"decision:market-is-efficient","type":"depends_on","date":"2026-04-15"}
+{"kind":"edge","from":"plan:c2-dashboard","to":"plan:dashboard-polish","type":"led_to","date":"2026-04-15"}
+{"kind":"edge","from":"decision:clob-v2-data-loss","to":"decision:dataset-irreplaceable","type":"led_to","date":"2026-04-15"}
