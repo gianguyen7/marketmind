@@ -1,0 +1,1137 @@
+"""MarketMind — Can You Beat a Prediction Market?
+
+A research dashboard exploring whether Polymarket's crowd wisdom
+can be systematically outsmarted by machine learning.
+
+Run with: streamlit run src/dashboard/app.py
+"""
+
+import json
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+
+st.set_page_config(
+    page_title="MarketMind",
+    page_icon=":crystal_ball:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+TABLES = Path("outputs/tables")
+FIGURES = Path("outputs/figures")
+DATA = Path("data/processed")
+RAW = Path("data/raw")
+
+# Consistent color palette
+COLORS = {
+    "primary": "#636EFA",
+    "secondary": "#EF553B",
+    "success": "#00CC96",
+    "warning": "#FFA15A",
+    "muted": "#7F7F7F",
+    "bg_light": "#F8F9FA",
+}
+
+# ---------------------------------------------------------------------------
+# Data loading
+# ---------------------------------------------------------------------------
+
+
+@st.cache_data
+def load_csv(name: str) -> pd.DataFrame | None:
+    path = TABLES / name
+    return pd.read_csv(path) if path.exists() else None
+
+
+@st.cache_data
+def load_json(name: str) -> dict | None:
+    path = TABLES / name
+    if path.exists():
+        return json.loads(path.read_text())
+    return None
+
+
+@st.cache_data
+def load_splits() -> dict[str, pd.DataFrame]:
+    splits = {}
+    for name in ["train", "val", "test"]:
+        p = DATA / f"{name}.parquet"
+        if p.exists():
+            splits[name] = pd.read_parquet(p)
+    return splits
+
+
+@st.cache_data
+def load_raw_markets() -> pd.DataFrame | None:
+    p = RAW / "gamma_markets.parquet"
+    if p.exists():
+        df = pd.read_parquet(p)
+        df["start_date"] = pd.to_datetime(df["start_date"], format="ISO8601", utc=True)
+        return df
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Reusable components
+# ---------------------------------------------------------------------------
+
+
+def metric_with_explanation(label: str, value: str, explanation: str):
+    """A metric card with a plain-English explanation underneath."""
+    st.metric(label, value)
+    st.caption(explanation)
+
+
+def section_explainer(text: str):
+    """A styled info box for explaining concepts to non-technical readers."""
+    st.markdown(
+        f'<div style="background-color: #f0f2f6; border-left: 4px solid #636EFA; '
+        f'padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; '
+        f'font-size: 0.92em; color: #444;">{text}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def score_card(label: str, value: str, good_or_bad: str, detail: str = ""):
+    """A colored score card — green for good, red for bad, gray for neutral."""
+    color_map = {"good": "#00CC96", "bad": "#EF553B", "neutral": "#7F7F7F"}
+    bg_map = {"good": "#E8FFF5", "bad": "#FFF0EE", "neutral": "#F8F9FA"}
+    c = color_map.get(good_or_bad, "#7F7F7F")
+    bg = bg_map.get(good_or_bad, "#F8F9FA")
+    detail_html = f'<div style="font-size:0.8em;color:#666;margin-top:4px;">{detail}</div>' if detail else ""
+    st.markdown(
+        f'<div style="background:{bg};border:1px solid {c};border-radius:8px;padding:16px;text-align:center;">'
+        f'<div style="font-size:0.85em;color:#666;">{label}</div>'
+        f'<div style="font-size:1.8em;font-weight:700;color:{c};">{value}</div>'
+        f'{detail_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Sidebar navigation
+# ---------------------------------------------------------------------------
+
+PAGES = [
+    "The Story",
+    "How Accurate Is Polymarket?",
+    "The Underdog Effect",
+    "Can AI Beat the Crowd?",
+    "The Data Behind It All",
+    "Glossary",
+]
+
+st.sidebar.title("MarketMind")
+st.sidebar.markdown("*Can you outsmart a prediction market?*")
+st.sidebar.markdown("---")
+page = st.sidebar.radio("Chapters", PAGES, label_visibility="collapsed")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "**How to read this dashboard**\n\n"
+    "This dashboard tells the story of a research project. "
+    "Start with *The Story* for the big picture, then explore "
+    "each chapter. Jargon is explained inline and in the *Glossary*."
+)
+
+
+# ---------------------------------------------------------------------------
+# Page 1: The Story (Overview)
+# ---------------------------------------------------------------------------
+
+
+def page_story():
+    st.title("Can You Outsmart 4,538 Prediction Markets?")
+
+    st.markdown(
+        """
+        **Polymarket** is a prediction market where people bet real money on future events
+        — elections, sports, crypto prices, geopolitics, and more. The price of each market
+        reflects the crowd's collective belief about how likely an event is to happen.
+
+        **We asked a simple question:** *Is the crowd ever systematically wrong in a way
+        that a machine learning model could exploit?*
+
+        We analyzed **4,538 resolved markets** with **640,000 price snapshots** spanning
+        from 2022 to 2026. We tried four different approaches to beat the market.
+        """
+    )
+
+    st.markdown("---")
+
+    # The punchline, up front
+    st.markdown("### The Short Answer")
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown(
+            """
+            **No.** Polymarket's crowd is remarkably good at its job.
+
+            When the market says an event has a 30% chance of happening, it really does
+            happen about 30% of the time. When it says 80%, that's right too.
+            This kind of accuracy — called *calibration* — is extremely hard to achieve,
+            and Polymarket nails it across thousands of markets.
+
+            We found one real pattern (underdogs win slightly more than expected) but it's
+            too small to profit from. Every AI model we built either matched the crowd or
+            did worse.
+            """
+        )
+    with col2:
+        brier_df = load_csv("brier_decomposition.csv")
+        if brier_df is not None:
+            overall = brier_df[brier_df["split"] == "all"].iloc[0]
+            score_card(
+                "Crowd Accuracy Score",
+                f"{(1 - overall['brier_score']) * 100:.1f}%",
+                "good",
+                "92.1% accurate across all markets",
+            )
+            st.markdown("")
+            score_card(
+                "Price-to-Reality Match",
+                f"{overall['reliability']:.4f}",
+                "good",
+                "Nearly perfect (0 = perfect match)",
+            )
+
+    st.markdown("---")
+
+    # The journey
+    st.markdown("### What We Tried")
+    st.markdown(
+        "Think of each attempt as a different strategy to find a flaw in the crowd's thinking:"
+    )
+
+    attempts = [
+        {
+            "name": "Strategy 1: Bet on Underdogs",
+            "icon": "1.",
+            "idea": "Long-shot markets (low-probability events) seemed to win more often than their prices implied. What if we just bet YES on all of them?",
+            "result": "Lost $464 on 61 bets",
+            "verdict": "bad",
+            "why": "The pattern is real, but only 1 in 5 underdogs actually wins. Betting on all of them loses money fast.",
+        },
+        {
+            "name": "Strategy 2: Fix the Prices",
+            "icon": "2.",
+            "idea": "We trained statistical models to adjust Polymarket's prices — nudging underdogs up and favorites down to correct the bias.",
+            "result": "0.1% improvement",
+            "verdict": "neutral",
+            "why": "The prices are already so accurate that there's essentially nothing to fix.",
+        },
+        {
+            "name": "Strategy 3: Read the Price Charts",
+            "icon": "3.",
+            "idea": "Maybe the *shape* of how a price moves over time reveals when the crowd is confused. Volatile markets might be wrong more often.",
+            "result": "0.7% improvement",
+            "verdict": "neutral",
+            "why": "A tiny edge, but only when blending 45% AI with 55% crowd. The AI alone is worse than just trusting the crowd.",
+        },
+        {
+            "name": "Strategy 4: Throw ML at Everything",
+            "icon": "4.",
+            "idea": "Use machine learning (Random Forest, XGBoost) to find any pattern at all that predicts when the market is wrong.",
+            "result": "Worse than the crowd",
+            "verdict": "bad",
+            "why": "The models memorized quirks in the training data that didn't generalize. Classic overfitting.",
+        },
+    ]
+
+    for i, a in enumerate(attempts):
+        with st.container():
+            col_left, col_right = st.columns([3, 1])
+            with col_left:
+                st.markdown(f"**{a['name']}**")
+                st.markdown(f"*Idea:* {a['idea']}")
+                st.markdown(f"*Why it failed:* {a['why']}")
+            with col_right:
+                score_card("Result", a["result"], a["verdict"])
+            if i < len(attempts) - 1:
+                st.markdown("")
+
+    st.markdown("---")
+
+    # What we DID learn
+    st.markdown("### What We Actually Learned")
+
+    st.success(
+        "While we couldn't beat the market, we built a detailed map of *where* and *how* "
+        "it works — and where its small cracks are. That's what the rest of this dashboard explores."
+    )
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(
+            "**Sports bets are the most accurate**\n\n"
+            "With 2,099 markets, sports predictions are nearly "
+            "perfectly calibrated. The crowd knows its games."
+        )
+    with col2:
+        st.markdown(
+            "**Long-term predictions are the weakest**\n\n"
+            "Markets predicting events more than a year out are "
+            "significantly less accurate — especially in geopolitics."
+        )
+    with col3:
+        st.markdown(
+            "**Government policy is the wild card**\n\n"
+            "Unlikely government events (shutdowns, policy changes) "
+            "happen 17% more often than prices suggest."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Page 2: How Accurate Is Polymarket? (Calibration Explorer)
+# ---------------------------------------------------------------------------
+
+
+def page_calibration():
+    st.title("How Accurate Is Polymarket?")
+
+    section_explainer(
+        "<b>What does \"accurate\" mean here?</b> When Polymarket says an event has a "
+        "70% chance of happening, does it actually happen about 70% of the time? "
+        "If yes, the market is <i>well-calibrated</i>. We measured this across 4,538 markets "
+        "to see where the crowd gets it right — and where it struggles."
+    )
+
+    tab_cat, tab_horizon, tab_heatmap = st.tabs([
+        "By Topic",
+        "By Time Horizon",
+        "Topic + Time (Heatmap)",
+    ])
+
+    # --- By Category ---
+    with tab_cat:
+        st.markdown("### Which Topics Does the Crowd Predict Best?")
+        st.markdown(
+            "Each bar shows how well-calibrated a category is. **Shorter bars = more accurate predictions.** "
+            "The blue bar is the overall prediction quality; the red bar measures how well the "
+            "market's prices match actual outcomes."
+        )
+
+        cat_df = load_csv("calibration_by_category.csv")
+        if cat_df is None:
+            st.warning("Data not found. Run the calibration analysis first.")
+            return
+
+        cat_sorted = cat_df.sort_values("brier_score")
+
+        # Build a friendlier chart
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            y=cat_sorted["category"], x=cat_sorted["brier_score"],
+            name="Prediction Error",
+            marker_color=COLORS["primary"],
+            orientation="h",
+            text=cat_sorted["n_markets"].apply(lambda x: f"{int(x)} markets"),
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Prediction Accuracy by Topic (lower = better)",
+            xaxis_title="Prediction Error (Brier Score)",
+            height=450,
+            margin=dict(l=150),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Insights as callouts
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(
+                "**Best: Sports** (2,099 markets)\n\n"
+                "Prediction error of just 0.065 — the crowd is excellent at sports."
+            )
+        with col2:
+            st.error(
+                "**Worst: Geopolitics** (303 markets)\n\n"
+                "Prediction error of 0.124 — geopolitical events are genuinely hard to predict."
+            )
+
+        with st.expander("See detailed numbers"):
+            display = cat_sorted[["category", "n_markets", "base_rate", "brier_score", "ece", "reliability"]].copy()
+            display.columns = ["Topic", "Markets", "How Often YES Wins", "Prediction Error", "Calibration Gap", "Price Accuracy"]
+            st.dataframe(
+                display.style.format({
+                    "How Often YES Wins": "{:.1%}",
+                    "Prediction Error": "{:.4f}",
+                    "Calibration Gap": "{:.1%}",
+                    "Price Accuracy": "{:.4f}",
+                }),
+                use_container_width=True, hide_index=True,
+            )
+            section_explainer(
+                "<b>Reading this table:</b> "
+                "<i>Prediction Error</i> (Brier Score) measures overall accuracy — 0 is perfect. "
+                "<i>Calibration Gap</i> (ECE) measures how far prices are from reality — 1.1% means "
+                "prices are off by about 1 penny on average. "
+                "<i>Price Accuracy</i> (Reliability) is how closely prices match actual outcome rates — "
+                "0.0004 is nearly perfect."
+            )
+
+    # --- By Horizon ---
+    with tab_horizon:
+        st.markdown("### Does Time Horizon Matter?")
+        st.markdown(
+            "Markets predicting something happening tomorrow vs. something happening next year "
+            "have very different accuracy. Here's how prediction quality changes with time."
+        )
+
+        hor_df = load_csv("calibration_by_horizon.csv")
+        if hor_df is None:
+            st.warning("Data not found.")
+            return
+
+        # Friendly labels
+        horizon_labels = {
+            "<1d": "< 1 Day",
+            "1d-1w": "1 Day – 1 Week",
+            "1w-1m": "1 Week – 1 Month",
+            "1m-3m": "1 – 3 Months",
+            "3m-1y": "3 Months – 1 Year",
+            ">1y": "> 1 Year",
+        }
+        hor_df["horizon_label"] = hor_df["horizon"].map(horizon_labels).fillna(hor_df["horizon"])
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=hor_df["horizon_label"], y=hor_df["brier_score"],
+            mode="lines+markers+text",
+            name="Prediction Error",
+            line=dict(width=3, color=COLORS["primary"]),
+            marker=dict(size=12),
+            text=hor_df["brier_score"].apply(lambda x: f"{x:.3f}"),
+            textposition="top center",
+        ))
+        fig.update_layout(
+            title="Prediction Accuracy by Time Horizon",
+            yaxis_title="Prediction Error (lower = better)",
+            xaxis_title="How Far Away Is the Event?",
+            height=400,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(
+                "**Best: Less than 1 day away**\n\n"
+                "When resolution is imminent, the crowd is very accurate (error: 0.062)."
+            )
+        with col2:
+            st.error(
+                "**Worst: More than 1 year away**\n\n"
+                "Long-range predictions degrade sharply (error: 0.131). The crowd "
+                "struggles with distant, uncertain events."
+            )
+
+        section_explainer(
+            "This makes intuitive sense: it's easier to predict tomorrow's weather "
+            "than next year's. The interesting finding is the <b>bump at 1 day–1 week</b> — "
+            "markets in their final week often see frantic trading as new information arrives, "
+            "making prices temporarily less reliable."
+        )
+
+    # --- Category x Horizon ---
+    with tab_heatmap:
+        st.markdown("### Where Is the Crowd Weakest? (Topic + Time)")
+        st.markdown(
+            "This heatmap reveals the *specific combinations* of topic and time horizon "
+            "where predictions are best and worst. **Red = poor predictions, green = good predictions.**"
+        )
+
+        heatmap_df = load_csv("calibration_category_x_horizon.csv")
+        if heatmap_df is None:
+            st.warning("Data not found.")
+            return
+
+        pivot = heatmap_df.pivot_table(index="category", columns="horizon", values="brier", aggfunc="first")
+        horizon_order = ["<1w", "1w-1m", "1m-3m", "3m-1y", ">1y"]
+        ordered_cols = [h for h in horizon_order if h in pivot.columns]
+        pivot = pivot[ordered_cols]
+
+        # Friendlier column names
+        col_rename = {"<1w": "< 1 Week", "1w-1m": "1W–1M", "1m-3m": "1–3M", "3m-1y": "3M–1Y", ">1y": "> 1 Year"}
+        pivot.columns = [col_rename.get(c, c) for c in pivot.columns]
+
+        fig = px.imshow(
+            pivot, text_auto=".3f", aspect="auto",
+            color_continuous_scale="RdYlGn_r",
+            labels=dict(color="Prediction Error"),
+        )
+        fig.update_layout(
+            title="Prediction Error: Topic x Time Horizon (lower/greener = better)",
+            height=500,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("**Standout cells:**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.error(
+                "**Geopolitics > 1 Year: 0.574**\n\n"
+                "Predicting long-range geopolitical events is essentially a coin flip. "
+                "Will a country invade? Will a treaty hold? The crowd doesn't know."
+            )
+        with col2:
+            st.success(
+                "**Recession/Economy 1–3 Months: 0.007**\n\n"
+                "Near-perfect accuracy on medium-term economic indicators. "
+                "The crowd tracks economic data releases very well."
+            )
+
+
+# ---------------------------------------------------------------------------
+# Page 3: The Underdog Effect (F-L Bias)
+# ---------------------------------------------------------------------------
+
+
+def page_fl_bias():
+    st.title("The Underdog Effect")
+
+    section_explainer(
+        "In betting markets, there's a well-known pattern called the "
+        "<b>favourite-longshot bias</b>: people tend to <i>overbet on favorites</i> "
+        "and <i>underbet on longshots</i>. This means unlikely events actually happen "
+        "slightly more often than their prices suggest. We found this pattern on Polymarket too."
+    )
+
+    tab_overall, tab_category = st.tabs(["The Overall Pattern", "Which Topics Are Affected?"])
+
+    with tab_overall:
+        fl_df = load_csv("favourite_longshot_bias.csv")
+        if fl_df is None:
+            st.warning("Data not found.")
+            return
+
+        st.markdown("### When the Market Says 25%, Reality Says 30%")
+        st.markdown(
+            "The chart below compares what the market *predicted* (x-axis) vs. what *actually happened* "
+            "(blue line). The dashed gray line shows what perfect accuracy would look like. "
+            "Where the blue line is **above** the gray line, events happened more often than expected."
+        )
+
+        fig = go.Figure()
+
+        # Perfect calibration
+        fig.add_trace(go.Scatter(
+            x=fl_df["mean_price"], y=fl_df["mean_price"],
+            mode="lines", name="Perfect accuracy",
+            line=dict(dash="dash", color="gray", width=2),
+        ))
+
+        # Actual
+        fig.add_trace(go.Scatter(
+            x=fl_df["mean_price"], y=fl_df["actual_rate"],
+            mode="lines+markers", name="What actually happened",
+            line=dict(width=3, color=COLORS["primary"]),
+            marker=dict(size=10),
+        ))
+
+        fig.update_layout(
+            xaxis_title="Market's Predicted Probability",
+            yaxis_title="How Often It Actually Happened",
+            height=450,
+            legend=dict(x=0.02, y=0.98),
+            xaxis=dict(tickformat=".0%"),
+            yaxis=dict(tickformat=".0%"),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Key numbers
+        longshot_bias = fl_df[fl_df["bucket_mid"] < 0.3]["bias"].mean()
+        fav_bias = fl_df[fl_df["bucket_mid"] > 0.7]["bias"].mean()
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            score_card(
+                "Underdogs (price < 30%)",
+                f"+{longshot_bias:.1%}",
+                "neutral",
+                "Win more often than prices suggest",
+            )
+        with col2:
+            score_card(
+                "Favorites (price > 70%)",
+                f"{fav_bias:.1%}",
+                "neutral",
+                "Win less often than prices suggest",
+            )
+        with col3:
+            score_card(
+                "Sweet Spot",
+                "~45%",
+                "good",
+                "Prices near 45% are the most accurate",
+            )
+
+        st.markdown("")
+        section_explainer(
+            "Why does this happen? Behavioral economics suggests people <b>over-weight small "
+            "probabilities</b> (buying lottery tickets) and <b>under-weight large ones</b> "
+            "(underestimating sure things). The effect is real but tiny — about 2 cents on the "
+            "dollar for underdogs, which isn't enough to profit from after fees."
+        )
+
+        with st.expander("See the raw data"):
+            display = fl_df[["price_bucket", "mean_price", "actual_rate", "bias", "n_snapshots"]].copy()
+            display.columns = ["Price Range", "Average Price", "Actual Win Rate", "Gap", "Observations"]
+            st.dataframe(
+                display.style.format({
+                    "Average Price": "{:.1%}", "Actual Win Rate": "{:.1%}",
+                    "Gap": "{:+.1%}", "Observations": "{:,.0f}",
+                }),
+                use_container_width=True, hide_index=True,
+            )
+
+    with tab_category:
+        st.markdown("### Not All Topics Have the Same Bias")
+        st.markdown(
+            "The underdog effect varies wildly by topic. Some categories show the opposite: "
+            "longshots are *overpriced* and should be bet against."
+        )
+
+        fl_cat_df = load_csv("fl_bias_per_category.csv")
+        if fl_cat_df is None:
+            st.warning("Data not found.")
+            return
+
+        fl_cat_sorted = fl_cat_df.sort_values("longshot_bias", ascending=True)
+
+        fig = go.Figure(go.Bar(
+            y=fl_cat_sorted["category"],
+            x=fl_cat_sorted["longshot_bias"],
+            orientation="h",
+            marker_color=fl_cat_sorted["longshot_bias"].apply(
+                lambda x: COLORS["success"] if x > 0.01 else (COLORS["secondary"] if x < -0.01 else COLORS["muted"])
+            ),
+            text=fl_cat_sorted["longshot_bias"].apply(lambda x: f"{x:+.1%}"),
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Underdog Bias by Topic",
+            xaxis_title="Longshot Bias (positive = underdogs win MORE than expected)",
+            height=450,
+            margin=dict(l=180),
+            xaxis=dict(tickformat=".0%", zeroline=True, zerolinewidth=2, zerolinecolor="black"),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.warning(
+                "**Government Policy: +17.4%**\n\n"
+                "The crowd massively underestimates unlikely government events. "
+                "Low-probability shutdowns and policy changes happen 17% more often "
+                "than the market predicts. (But: only 43 markets — treat with caution.)"
+            )
+        with col2:
+            st.info(
+                "**Crypto: -3.8%** and **Social Media: -5.9%**\n\n"
+                "Here the pattern reverses — unlikely crypto and social media events happen "
+                "*less* often than their prices suggest. The crowd overhypes these longshots."
+            )
+
+
+# ---------------------------------------------------------------------------
+# Page 4: Can AI Beat the Crowd? (Exploitation Attempts)
+# ---------------------------------------------------------------------------
+
+
+def page_exploitation():
+    st.title("Can AI Beat the Crowd?")
+
+    section_explainer(
+        "We tried four different machine learning strategies to systematically outperform "
+        "Polymarket's prices. Each strategy was tested on markets the model had never seen before "
+        "(\"out-of-sample\") to ensure we weren't just memorizing patterns. Here's what happened."
+    )
+
+    tab_b5, tab_c1, tab_c4, tab_summary = st.tabs([
+        "Bet on Underdogs",
+        "Fix the Prices",
+        "Read the Charts",
+        "The Scoreboard",
+    ])
+
+    # --- B5: Structural Rule ---
+    with tab_b5:
+        st.markdown("### Strategy 1: Bet on Every Underdog")
+        st.markdown(
+            "We noticed that long-horizon, low-volume markets tend to under-price YES outcomes. "
+            "So we built a simple rule: *for every market in this category, nudge the price upward "
+            "and bet YES*."
+        )
+
+        b5 = load_json("b5_results_2026-04-12.json")
+        if b5 and "phase2" in b5:
+            splits_data = b5["phase2"].get("splits", {})
+
+            test = splits_data.get("test", {})
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                score_card("Markets Tested", str(test.get("n_struct", "?")), "neutral")
+            with col2:
+                score_card("Money Lost", f"${abs(test.get('pnl_total', 0)):,.0f}", "bad", "On $100 bets")
+            with col3:
+                score_card("Win Rate", f"{test.get('win_rate', 0):.0%}", "bad", "Need >50% to profit")
+
+        st.markdown("")
+        st.markdown("**Why it failed:**")
+        st.markdown(
+            "The observation was correct — underdogs *are* slightly underpriced. But only about "
+            "1 in 5 of these markets actually resolves YES. Betting on all of them is like "
+            "buying every lottery ticket at a 20% discount — you still lose because most tickets are losers."
+        )
+
+        b5_fig = FIGURES / "b5_rule_evaluation_2026-04-12.png"
+        if b5_fig.exists():
+            with st.expander("See the detailed results chart"):
+                st.image(str(b5_fig))
+
+    # --- C1: Recalibration ---
+    with tab_c1:
+        st.markdown("### Strategy 2: Mathematically Correct the Prices")
+        st.markdown(
+            "Since we found the underdog effect (prices are slightly off for longshots and favorites), "
+            "we trained statistical models to *adjust* every price — pushing longshots up a bit "
+            "and favorites down. Like recalibrating a thermometer that reads 1 degree too low."
+        )
+
+        c1_df = load_csv("c1_recalibration_results_2026-04-12.csv")
+        if c1_df is not None:
+            test_df = c1_df[c1_df["split"] == "test"].sort_values("brier")
+            if len(test_df) > 0:
+                naive_brier = test_df[test_df["model"] == "naive (market price)"]["brier"].values
+                if len(naive_brier) > 0:
+                    test_df = test_df.copy()
+                    test_df["improvement"] = -(test_df["brier"] - naive_brier[0])
+
+                # Friendly model names
+                name_map = {
+                    "naive (market price)": "Raw market price",
+                    "platt_global": "Simple correction",
+                    "isotonic_global": "Flexible correction",
+                    "platt_per_cat": "Per-topic simple correction",
+                    "isotonic_per_cat": "Per-topic flexible correction",
+                    "cat_x_horizon": "Topic + time correction",
+                }
+                test_df["friendly_name"] = test_df["model"].map(name_map).fillna(test_df["model"])
+
+                fig = go.Figure(go.Bar(
+                    y=test_df["friendly_name"],
+                    x=test_df["brier"],
+                    orientation="h",
+                    marker_color=test_df["model"].apply(
+                        lambda x: COLORS["success"] if x == "platt_global" else
+                        (COLORS["primary"] if x == "naive (market price)" else COLORS["muted"])
+                    ),
+                    text=test_df["brier"].apply(lambda x: f"{x:.4f}"),
+                    textposition="outside",
+                ))
+                fig.update_layout(
+                    title="Prediction Error by Model (lower = better)",
+                    xaxis_title="Prediction Error (Brier Score)",
+                    height=350,
+                    margin=dict(l=220),
+                    xaxis=dict(range=[0.075, 0.092]),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("")
+        st.markdown("**Why it didn't help:**")
+        st.markdown(
+            "The best correction (\"Simple correction\" / Platt scaling) improved accuracy "
+            "by **0.01%**. The market prices are already so close to perfect that there's "
+            "almost nothing to fix. More complex corrections actually made things *worse* "
+            "by overfitting to noise in the training data."
+        )
+
+        score_card("Best Improvement", "0.01%", "neutral", "Platt scaling — statistically meaningless")
+
+    # --- C4: Trajectory ---
+    with tab_c4:
+        st.markdown("### Strategy 3: Read the Price Charts")
+        st.markdown(
+            "Maybe the *shape* of how a price moves over time reveals when the crowd is confused. "
+            "We engineered features like:\n"
+            "- **Staleness** — how long since the price last moved\n"
+            "- **Volatility** — how wildly the price swings\n"
+            "- **Momentum** — is the price trending up or down\n\n"
+            "Then we trained a machine learning model (XGBoost) on these features."
+        )
+
+        c4 = load_json("c4_results_2026-04-12.json")
+        if c4:
+            test_results = c4.get("test_results", {})
+            naive_brier = test_results.get("naive_brier", 0)
+            hybrid = test_results.get("hybrid", {})
+            hybrid_brier = hybrid.get("brier", 0)
+            improvement = naive_brier - hybrid_brier
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                score_card("Crowd Alone", f"{naive_brier:.4f}", "neutral", "Prediction error")
+            with col2:
+                score_card("AI + Crowd Blend", f"{hybrid_brier:.4f}", "good", "45% AI / 55% crowd")
+            with col3:
+                score_card("Improvement", f"{improvement:.4f}", "neutral", f"{improvement/naive_brier:.1%} better")
+
+        st.markdown("")
+        st.markdown("**The key discovery:**")
+        st.info(
+            "**Markets that stop moving are usually RIGHT, not stuck.**\n\n"
+            "We expected that when a market's price stops changing (\"stale\"), it might be "
+            "stuck at a wrong price because nobody's paying attention. The opposite is true: "
+            "stale markets are *confident and correct*. When the crowd agrees and stops trading, "
+            "the information has already been incorporated."
+        )
+
+        st.markdown(
+            "**Why it barely helped:** The AI model only works when blended with the crowd's price "
+            "(45% AI, 55% crowd). On its own, the AI is *worse* than just trusting the market. "
+            "It essentially learned \"trust the market more when it's confident\" — which the "
+            "market already does implicitly."
+        )
+
+        # Feature importance
+        corr_df = load_csv("c4_trajectory_correlations_2026-04-12.csv")
+        if corr_df is not None:
+            with st.expander("Which chart features mattered most?"):
+                top = corr_df.head(8).copy()
+                feature_labels = {
+                    "price_extremity": "Price near 0% or 100%",
+                    "price_yes": "Current price",
+                    "staleness": "Time since last price move",
+                    "price_range_14": "Price range (14 snapshots)",
+                    "price_volatility_7": "Price volatility (7 snapshots)",
+                    "dist_from_low": "Distance from historic low",
+                    "vol_regime": "Current vs historic volatility",
+                    "path_curvature": "Price path curvature",
+                }
+                top["label"] = top["feature"].map(feature_labels).fillna(top["feature"])
+
+                fig = go.Figure(go.Bar(
+                    y=top["label"], x=top["rho_abs_error"].abs(),
+                    orientation="h",
+                    marker_color=top["rho_abs_error"].apply(
+                        lambda x: COLORS["primary"] if x < 0 else COLORS["secondary"]
+                    ),
+                    text=top["rho_abs_error"].apply(lambda x: f"{x:+.2f}"),
+                    textposition="outside",
+                ))
+                fig.update_layout(
+                    title="Feature Correlation with Prediction Error",
+                    xaxis_title="Correlation Strength",
+                    height=380, margin=dict(l=230),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+                section_explainer(
+                    "Negative correlation (blue) = when this feature is high, errors are low "
+                    "(good for accuracy). Positive (red) = high feature value means more error."
+                )
+
+    # --- Summary Scoreboard ---
+    with tab_summary:
+        st.markdown("### The Final Scoreboard")
+        st.markdown(
+            "Here's how every strategy stacked up. The crowd's raw price is the baseline — "
+            "anything that can't beat it is not useful."
+        )
+
+        scoreboard = pd.DataFrame([
+            {"Strategy": "Raw Market Price (baseline)", "Prediction Error": 0.0795,
+             "vs. Crowd": "—", "Verdict": "The benchmark"},
+            {"Strategy": "Bet on Underdogs (B5)", "Prediction Error": 0.2163,
+             "vs. Crowd": "172% worse", "Verdict": "Lost money"},
+            {"Strategy": "Fix the Prices (C1)", "Prediction Error": 0.0794,
+             "vs. Crowd": "0.1% better", "Verdict": "Negligible"},
+            {"Strategy": "Read the Charts (C4)", "Prediction Error": 0.0790,
+             "vs. Crowd": "0.7% better", "Verdict": "Tiny edge"},
+            {"Strategy": "ML Everything (global)", "Prediction Error": 0.408,
+             "vs. Crowd": "413% worse", "Verdict": "Overfit"},
+        ])
+
+        fig = go.Figure(go.Bar(
+            y=scoreboard["Strategy"],
+            x=scoreboard["Prediction Error"],
+            orientation="h",
+            marker_color=["#636EFA", "#EF553B", "#7F7F7F", "#00CC96", "#EF553B"],
+            text=scoreboard["Verdict"],
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Prediction Error by Strategy (lower = better)",
+            xaxis_title="Prediction Error (Brier Score)",
+            height=350, margin=dict(l=250),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.success(
+            "**Conclusion: The crowd wins.**\n\n"
+            "Across 4,538 markets, no automated strategy meaningfully outperformed "
+            "Polymarket's collective human judgment. The wisdom of the crowd is real, "
+            "at least in this market."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Page 5: Data Deep Dive
+# ---------------------------------------------------------------------------
+
+
+def page_data():
+    st.title("The Data Behind It All")
+
+    section_explainer(
+        "This research analyzed <b>4,538 resolved prediction markets</b> from Polymarket, "
+        "covering January 2022 through April 2026. Each market had its price tracked over time, "
+        "giving us <b>640,000 price snapshots</b> to work with. Here's what the dataset looks like."
+    )
+
+    tab_overview, tab_volume, tab_splits = st.tabs([
+        "What's in the Data",
+        "Money and Volume",
+        "How We Split It",
+    ])
+
+    with tab_overview:
+        markets = load_raw_markets()
+        if markets is None:
+            st.warning("Raw market data not found.")
+            return
+
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            score_card("Markets Fetched", f"{len(markets):,}", "neutral")
+        with col2:
+            score_card("After Filtering", "4,538", "neutral", "Removed sparse markets")
+        with col3:
+            score_card("Topic Categories", "11", "neutral")
+        with col4:
+            score_card("Price Snapshots", "640,450", "neutral")
+
+        st.markdown("---")
+
+        st.markdown("### Markets by Topic")
+        cat_counts = markets["category"].value_counts().reset_index()
+        cat_counts.columns = ["category", "count"]
+        cat_counts = cat_counts.sort_values("count", ascending=True)
+
+        fig = go.Figure(go.Bar(
+            y=cat_counts["category"], x=cat_counts["count"],
+            orientation="h",
+            marker_color=COLORS["primary"],
+            text=cat_counts["count"],
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Number of Markets by Topic",
+            xaxis_title="Number of Markets",
+            height=450, margin=dict(l=180),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("### Markets Over Time")
+        markets["start_year"] = markets["start_date"].dt.year
+        by_year = markets.groupby("start_year").agg(
+            n_markets=("condition_id", "count"),
+            total_volume=("volume_usd", "sum"),
+        ).reset_index()
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=by_year["start_year"], y=by_year["n_markets"],
+            name="Markets Created", marker_color=COLORS["primary"],
+            text=by_year["n_markets"],
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Markets Created by Year",
+            yaxis_title="Number of Markets",
+            xaxis_title="Year",
+            height=400,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        section_explainer(
+            "Polymarket barely existed before 2024. The explosion in 2024 was driven by the "
+            "US Presidential Election. Growth continued in 2025-2026 with sports and crypto markets. "
+            "The 2022-2023 data is very thin (just 15 markets)."
+        )
+
+    with tab_volume:
+        markets = load_raw_markets()
+        if markets is None:
+            return
+
+        markets["start_year"] = markets["start_date"].dt.year
+        by_year = markets.groupby("start_year")["volume_usd"].sum().reset_index()
+
+        st.markdown("### Total Money Traded by Year")
+        fig = go.Figure(go.Bar(
+            x=by_year["start_year"],
+            y=by_year["volume_usd"] / 1e9,
+            marker_color=COLORS["success"],
+            text=(by_year["volume_usd"] / 1e9).apply(lambda x: f"${x:.1f}B"),
+            textposition="outside",
+        ))
+        fig.update_layout(
+            yaxis_title="Volume (Billions USD)", xaxis_title="Year",
+            height=400,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("### Where Does the Money Go?")
+        vol_by_cat = markets.groupby("category")["volume_usd"].sum().sort_values(ascending=True).reset_index()
+
+        fig = go.Figure(go.Bar(
+            y=vol_by_cat["category"],
+            x=vol_by_cat["volume_usd"] / 1e9,
+            orientation="h",
+            marker_color=COLORS["primary"],
+            text=(vol_by_cat["volume_usd"] / 1e9).apply(lambda x: f"${x:.1f}B"),
+            textposition="outside",
+        ))
+        fig.update_layout(
+            title="Total Volume by Topic",
+            xaxis_title="Volume (Billions USD)",
+            height=450, margin=dict(l=180),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        section_explainer(
+            "Politics dominated in 2024 ($8.6B from the US election alone), but sports is the "
+            "steady volume leader in 2025-2026. Crypto and geopolitics are growing fast."
+        )
+
+    with tab_splits:
+        st.markdown("### How We Tested Our Models")
+        section_explainer(
+            "To honestly evaluate whether a model works, you can't test it on data it's already seen. "
+            "We split the data into three time-ordered groups:<br><br>"
+            "<b>Training set</b> (earliest 60%) — the model learns from this.<br>"
+            "<b>Validation set</b> (next 20%) — used to tune the model's settings.<br>"
+            "<b>Test set</b> (most recent 20%) — the final exam. Only looked at once.<br><br>"
+            "Critically, the test set contains <i>more recent</i> markets that the model "
+            "has never seen — simulating what would happen if we used the model in real life."
+        )
+
+        splits = load_splits()
+        if not splits:
+            st.warning("Split data not found.")
+            return
+
+        rows = []
+        for name, df in splits.items():
+            n_markets = df["condition_id"].nunique() if "condition_id" in df.columns else len(df)
+            base_rate = df["resolved_yes"].mean() if "resolved_yes" in df.columns else None
+            rows.append({
+                "Split": name.capitalize(),
+                "Purpose": {"train": "Model learns from this", "val": "Tuning & selection", "test": "Final evaluation"}[name],
+                "Markets": n_markets,
+                "Snapshots": len(df),
+                "YES Win Rate": base_rate,
+            })
+
+        split_df = pd.DataFrame(rows)
+        st.dataframe(
+            split_df.style.format({
+                "YES Win Rate": "{:.1%}", "Snapshots": "{:,.0f}",
+            }),
+            use_container_width=True, hide_index=True,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Page 6: Glossary
+# ---------------------------------------------------------------------------
+
+
+def page_glossary():
+    st.title("Glossary")
+    st.markdown("Plain-English definitions for the technical terms used in this dashboard.")
+
+    terms = [
+        ("Brier Score", "Prediction Error",
+         "A measure of how wrong predictions are, from 0 (perfect) to 1 (completely wrong). "
+         "Calculated as the average squared difference between the predicted probability and "
+         "what actually happened (0 or 1). A Brier score of 0.08 means predictions are quite good."),
+
+        ("Calibration", "Price Accuracy",
+         "A market is well-calibrated when its prices match reality: if it prices something at 30%, "
+         "that thing should happen about 30% of the time. Good calibration means you can trust "
+         "the prices as genuine probabilities."),
+
+        ("ECE (Expected Calibration Error)", "Calibration Gap",
+         "Measures the average gap between predicted probabilities and actual outcomes. "
+         "An ECE of 1% means prices are off by about 1 percentage point on average."),
+
+        ("Reliability", "Price-to-Reality Match",
+         "A component of the Brier Score that measures how well predictions match outcomes "
+         "across all probability levels. Closer to 0 is better. Polymarket's 0.0004 is exceptional."),
+
+        ("Resolution", "Decisiveness",
+         "How much the model's predictions vary. A model that always says 50% has zero resolution. "
+         "Higher is better — it means the model is making distinct, bold predictions rather than hedging."),
+
+        ("Favourite-Longshot Bias", "The Underdog Effect",
+         "The tendency for unlikely events (longshots) to win slightly more often than their "
+         "prices suggest, while likely events (favorites) win slightly less. Found across "
+         "betting markets worldwide."),
+
+        ("Overfitting", "Memorizing Instead of Learning",
+         "When a model learns the specific quirks of its training data instead of general patterns. "
+         "Like a student who memorizes test answers instead of understanding the material — "
+         "they ace practice tests but fail new ones."),
+
+        ("Walk-Forward Validation", "Real-World Testing",
+         "Testing a model on data from *after* it was built, simulating what would happen "
+         "in real trading. More honest than random train/test splits because time moves forward."),
+
+        ("XGBoost", "A Machine Learning Algorithm",
+         "A popular ML algorithm that builds many small decision trees and combines them. "
+         "Known for winning data science competitions but also prone to overfitting."),
+
+        ("Platt Scaling / Isotonic Regression", "Price Correction Methods",
+         "Statistical techniques that adjust model outputs to be better calibrated. "
+         "Platt scaling fits a simple S-curve; isotonic regression fits a flexible step function."),
+    ]
+
+    for technical, friendly, explanation in terms:
+        with st.expander(f"**{technical}** — \"{friendly}\""):
+            st.markdown(explanation)
+
+
+# ---------------------------------------------------------------------------
+# Router
+# ---------------------------------------------------------------------------
+
+PAGE_MAP = {
+    "The Story": page_story,
+    "How Accurate Is Polymarket?": page_calibration,
+    "The Underdog Effect": page_fl_bias,
+    "Can AI Beat the Crowd?": page_exploitation,
+    "The Data Behind It All": page_data,
+    "Glossary": page_glossary,
+}
+
+PAGE_MAP[page]()
+
+# Footer
+st.markdown("---")
+st.caption(
+    "MarketMind — A research project analyzing 4,538 Polymarket prediction markets | "
+    "Data: Jan 2022 – Apr 2026 | 640K price snapshots"
+)

@@ -1,0 +1,249 @@
+/* =========================================================================
+   MarketMind Design System — Foundations
+   Colors, type, spacing, radii, shadows.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- Brand ---------- */
+  --mm-ink:          #0B1020;   /* Primary foreground */
+  --mm-paper:        #FAFAF7;   /* Primary background (warm off-white) */
+  --mm-indigo:       #4F5BD5;   /* MarketMind accent */
+  --mm-indigo-hover: #3F4BC5;
+  --mm-indigo-press: #2F3BB0;
+  --mm-indigo-soft:  #E9EAFB;   /* Selection, hover tint */
+
+  /* ---------- Data palette ---------- */
+  --mm-coral:        #E44D3A;   /* down / NO / negative */
+  --mm-coral-soft:   #FBE5E2;
+  --mm-green:        #2B9E6B;   /* up / YES / positive */
+  --mm-green-soft:   #DFF2E8;
+  --mm-amber:        #D89B2A;   /* warning / fragile */
+  --mm-amber-soft:   #F9EED6;
+  --mm-violet:       #7B4FD5;   /* tertiary series */
+  --mm-teal:         #2C8E9E;   /* quaternary series */
+
+  /* ---------- Warm neutral ramp ---------- */
+  --mm-slate-50:     #F4F3EE;
+  --mm-slate-100:    #EAE8E0;
+  --mm-slate-200:    #D9D6CB;
+  --mm-slate-300:    #BEBBAF;
+  --mm-slate-400:    #9B988C;
+  --mm-slate-500:    #76746A;
+  --mm-slate-600:    #575650;
+  --mm-slate-700:    #3C3B37;
+  --mm-slate-800:    #252522;
+  --mm-slate-900:    #121211;
+
+  /* ---------- Semantic ---------- */
+  --mm-fg-1:         var(--mm-ink);         /* primary text */
+  --mm-fg-2:         var(--mm-slate-700);   /* body text */
+  --mm-fg-3:         var(--mm-slate-500);   /* muted / caption */
+  --mm-fg-4:         var(--mm-slate-400);   /* disabled / placeholder */
+  --mm-bg-1:         var(--mm-paper);       /* page */
+  --mm-bg-2:         var(--mm-slate-50);    /* raised subtle / hovered row */
+  --mm-bg-3:         #FFFFFF;               /* card on paper (slightly brighter) */
+  --mm-border:       var(--mm-slate-200);   /* hairline */
+  --mm-border-strong:var(--mm-slate-300);
+  --mm-accent:       var(--mm-indigo);
+  --mm-success:      var(--mm-green);
+  --mm-warning:      var(--mm-amber);
+  --mm-danger:       var(--mm-coral);
+
+  /* Focus ring */
+  --mm-focus-ring:   0 0 0 3px rgba(79, 91, 213, 0.35);
+
+  /* ---------- Type ---------- */
+  --mm-font-serif:   'Source Serif 4', 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
+  --mm-font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mm-font-mono:    'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Modular scale (1.2 ratio, 16px base) */
+  --mm-fs-caption:   12px;     /* ALL CAPS eyebrow */
+  --mm-fs-small:     13px;
+  --mm-fs-body:      15px;
+  --mm-fs-body-lg:   16px;
+  --mm-fs-h4:        18px;
+  --mm-fs-h3:        22px;
+  --mm-fs-h2:        28px;
+  --mm-fs-h1:        36px;
+  --mm-fs-display:   56px;
+  --mm-fs-metric:    40px;     /* dashboard metric tile */
+  --mm-fs-metric-lg: 64px;     /* hero metric */
+
+  /* Line heights */
+  --mm-lh-tight:     1.1;
+  --mm-lh-snug:      1.25;
+  --mm-lh-body:      1.55;
+  --mm-lh-loose:     1.7;
+
+  /* Weights */
+  --mm-fw-regular:   400;
+  --mm-fw-medium:    500;
+  --mm-fw-semi:      600;
+  --mm-fw-bold:      700;
+
+  /* Tracking */
+  --mm-tr-tight:     -0.01em;
+  --mm-tr-normal:    0;
+  --mm-tr-wide:      0.04em;
+  --mm-tr-eyebrow:   0.08em;
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --mm-space-0:      0;
+  --mm-space-1:      4px;
+  --mm-space-2:      8px;
+  --mm-space-3:      12px;
+  --mm-space-4:      16px;
+  --mm-space-5:      24px;
+  --mm-space-6:      32px;
+  --mm-space-7:      48px;
+  --mm-space-8:      64px;
+  --mm-space-9:      96px;
+
+  /* ---------- Radii ---------- */
+  --mm-radius-xs:    4px;    /* dots, small badges */
+  --mm-radius-sm:    6px;
+  --mm-radius-md:    8px;    /* buttons, inputs */
+  --mm-radius-lg:    10px;   /* cards */
+  --mm-radius-xl:    14px;
+  --mm-radius-pill:  999px;
+
+  /* ---------- Shadows (cool cast) ---------- */
+  --mm-shadow-0:     none;
+  --mm-shadow-1:     0 1px 2px rgba(11, 16, 32, 0.04), 0 1px 4px rgba(11, 16, 32, 0.06);
+  --mm-shadow-2:     0 4px 12px rgba(11, 16, 32, 0.08), 0 2px 4px rgba(11, 16, 32, 0.04);
+  --mm-shadow-3:     0 16px 40px rgba(11, 16, 32, 0.14), 0 4px 12px rgba(11, 16, 32, 0.06);
+
+  /* ---------- Motion ---------- */
+  --mm-ease:         cubic-bezier(0.2, 0.8, 0.2, 1);
+  --mm-dur-fast:     120ms;
+  --mm-dur-med:      200ms;
+  --mm-dur-slow:     320ms;
+
+  /* ---------- Layout ---------- */
+  --mm-measure:      72ch;
+  --mm-sidebar-w:    260px;
+}
+
+/* =========================================================================
+   Semantic element styles — use on elements directly, or as class refs.
+   ========================================================================= */
+
+html, body {
+  background: var(--mm-bg-1);
+  color: var(--mm-fg-1);
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-fs-body);
+  line-height: var(--mm-lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .mm-h1 {
+  font-family: var(--mm-font-serif);
+  font-size: var(--mm-fs-h1);
+  font-weight: var(--mm-fw-semi);
+  line-height: var(--mm-lh-tight);
+  letter-spacing: var(--mm-tr-tight);
+  color: var(--mm-fg-1);
+  margin: 0 0 var(--mm-space-5);
+}
+h2, .mm-h2 {
+  font-family: var(--mm-font-serif);
+  font-size: var(--mm-fs-h2);
+  font-weight: var(--mm-fw-semi);
+  line-height: var(--mm-lh-snug);
+  letter-spacing: var(--mm-tr-tight);
+  color: var(--mm-fg-1);
+  margin: 0 0 var(--mm-space-4);
+}
+h3, .mm-h3 {
+  font-family: var(--mm-font-serif);
+  font-size: var(--mm-fs-h3);
+  font-weight: var(--mm-fw-medium);
+  line-height: var(--mm-lh-snug);
+  color: var(--mm-fg-1);
+  margin: 0 0 var(--mm-space-3);
+}
+h4, .mm-h4 {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-fs-h4);
+  font-weight: var(--mm-fw-semi);
+  line-height: var(--mm-lh-snug);
+  color: var(--mm-fg-1);
+  margin: 0 0 var(--mm-space-3);
+}
+
+.mm-display {
+  font-family: var(--mm-font-serif);
+  font-size: var(--mm-fs-display);
+  font-weight: var(--mm-fw-semi);
+  line-height: var(--mm-lh-tight);
+  letter-spacing: var(--mm-tr-tight);
+}
+
+.mm-eyebrow {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-fs-caption);
+  font-weight: var(--mm-fw-semi);
+  letter-spacing: var(--mm-tr-eyebrow);
+  text-transform: uppercase;
+  color: var(--mm-fg-3);
+}
+
+p, .mm-body {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-fs-body);
+  line-height: var(--mm-lh-body);
+  color: var(--mm-fg-2);
+  margin: 0 0 var(--mm-space-4);
+  max-width: var(--mm-measure);
+}
+
+.mm-caption {
+  font-family: var(--mm-font-sans);
+  font-size: var(--mm-fs-small);
+  line-height: var(--mm-lh-body);
+  color: var(--mm-fg-3);
+}
+
+.mm-mono, code, kbd, samp {
+  font-family: var(--mm-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.mm-metric {
+  font-family: var(--mm-font-mono);
+  font-size: var(--mm-fs-metric);
+  font-weight: var(--mm-fw-medium);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--mm-tr-tight);
+  color: var(--mm-fg-1);
+  line-height: 1;
+}
+.mm-metric--hero {
+  font-size: var(--mm-fs-metric-lg);
+}
+
+a {
+  color: var(--mm-indigo);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--mm-dur-fast) var(--mm-ease);
+}
+a:hover { border-bottom-color: var(--mm-indigo); }
+
+hr { border: 0; border-top: 1px solid var(--mm-border); margin: var(--mm-space-6) 0; }
+
+::selection { background: var(--mm-indigo-soft); color: var(--mm-ink); }
+
+/* =========================================================================
+   Utility tokens for quick use
+   ========================================================================= */
+.mm-surface     { background: var(--mm-bg-3); border: 1px solid var(--mm-border); border-radius: var(--mm-radius-lg); }
+.mm-surface-sub { background: var(--mm-bg-2); border: 1px solid var(--mm-border); border-radius: var(--mm-radius-lg); }
+.mm-hairline-t  { border-top: 1px solid var(--mm-border); }
+.mm-hairline-b  { border-bottom: 1px solid var(--mm-border); }

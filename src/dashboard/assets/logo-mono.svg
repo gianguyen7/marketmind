@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" width="300" height="64" role="img" aria-label="MarketMind">
+  <g transform="translate(2 2)" fill="currentColor" stroke="currentColor">
+    <rect x="0" y="0" width="60" height="60" rx="14" stroke="none"></rect>
+    <line x1="12" y1="48" x2="48" y2="12" stroke-width="2" stroke-opacity="0.35" stroke-linecap="round" fill="none"></line>
+    <path d="M12 48 Q20 26 32 20 T48 12" fill="none" stroke-width="2.75" stroke-linecap="round" style="stroke: #F7F5EC;"></path>
+    <line x1="12" y1="48" x2="48" y2="12" stroke-width="2" stroke-opacity="0.35" stroke-linecap="round" fill="none" style="stroke: #F7F5EC;"></line>
+    <circle cx="24" cy="28" r="3.2" fill="#F7F5EC" stroke="none"></circle>
+    <circle cx="24" cy="28" r="1.4" fill="currentColor" stroke="none"></circle>
+  </g>
+  <text x="78" y="42" font-family="Inter, &#39;Inter Tight&#39;, system-ui, -apple-system, sans-serif" font-size="30" font-weight="600" letter-spacing="-0.035em" fill="currentColor" stroke="none">
+    MarketMind
+  </text>
+</svg>

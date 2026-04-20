@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MarketMind · Findings one-pager</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  @page { size: letter; margin: 0.5in; }
+  html, body { margin: 0; background: var(--mm-bg-1); }
+  body { font-family: var(--mm-font-sans); color: var(--mm-fg-1); }
+  .page {
+    width: 8.5in; min-height: 11in; box-sizing: border-box;
+    margin: 24px auto; padding: 0.6in 0.65in;
+    background: var(--mm-paper);
+    border: 1px solid var(--mm-border);
+    box-shadow: var(--mm-shadow-2);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  @media print { .page { margin: 0; border: none; box-shadow: none; width: 100%; min-height: auto; } body { background: #fff; } }
+
+  /* header */
+  .hdr { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1.5px solid var(--mm-ink); padding-bottom: 12px; }
+  .hdr-l { display: flex; align-items: center; gap: 12px; }
+  .hdr img { display: block; }
+  .hdr-meta { text-align: right; font: 500 11px var(--mm-font-mono); color: var(--mm-fg-3); white-space: nowrap; line-height: 1.5; }
+  .doctype { font: 600 10px var(--mm-font-sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mm-fg-3); }
+
+  /* headline */
+  .hl { margin-top: 6px; }
+  .hl .eb { font: 600 10px var(--mm-font-sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mm-danger); }
+  .hl h1 { font-family: var(--mm-font-serif); font-size: 42px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.05; margin: 4px 0 8px; color: var(--mm-fg-1); }
+  .hl .sub { font-size: 14px; color: var(--mm-fg-2); max-width: 62ch; line-height: 1.5; margin: 0; }
+
+  /* verdict strip */
+  .verdict { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .v-tile { border: 1px solid var(--mm-border); border-radius: 8px; background: #fff; padding: 10px 12px; }
+  .v-lbl { font: 600 9px var(--mm-font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--mm-fg-3); }
+  .v-val { font-family: var(--mm-font-mono); font-weight: 500; font-variant-numeric: tabular-nums; font-size: 26px; letter-spacing: -0.01em; color: var(--mm-fg-1); margin-top: 4px; line-height: 1; }
+  .v-sub { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-top: 4px; }
+
+  section h2 { font-family: var(--mm-font-serif); font-size: 17px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; color: var(--mm-fg-1); }
+  section .lead { font-size: 12.5px; color: var(--mm-fg-2); margin: 0 0 8px; line-height: 1.5; }
+
+  /* chart + split block side by side */
+  .evidence { display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px; align-items: stretch; }
+  .evidence > * { min-width: 0; }
+
+  /* findings as 3-column row */
+  .findings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .findings-grid .key-finding { margin-bottom: 0; }
+
+  .eb-section { font: 600 9px var(--mm-font-sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mm-fg-3); border-top: 1px solid var(--mm-border); padding-top: 10px; margin-bottom: 4px; }
+
+  /* findings table */
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th, td { text-align: left; padding: 7px 12px; vertical-align: middle; }
+  th { font: 600 9px var(--mm-font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--mm-fg-3); border-bottom: 1px solid var(--mm-border); }
+  td { border-bottom: 1px solid var(--mm-slate-100); color: var(--mm-fg-1); }
+  tr:last-child td { border-bottom: 0; }
+  .pill { display: inline-block; font: 600 9px var(--mm-font-sans); letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 999px; }
+  .pill-danger { background: #FBE5E2; color: #8A2A1E; }
+  .pill-warn { background: #F9EED6; color: #7A5A15; }
+  .pill-info { background: #E9EAFB; color: #2F3BB0; }
+
+  /* reliability SVG */
+  .chart-wrap { border: 1px solid var(--mm-border); border-radius: 8px; background: #fff; padding: 12px 14px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+  .chart-wrap .ch { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 2px; }
+  .chart-wrap .ch-sub { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-bottom: 8px; }
+  .chart-wrap svg { flex: 1; min-height: 220px; }
+  .chart-wrap .cap { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-top: 8px; }
+  .split-block { border: 1px solid var(--mm-border); border-radius: 8px; background: #fff; padding: 12px 14px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+  .split-block .ch { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 2px; }
+  .split-block .ch-sub { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-bottom: 10px; }
+  .split-block table { margin-top: auto; }
+  .split-block .cap { margin-top: 8px; }
+
+  .key-finding { border-left: 2px solid var(--mm-indigo); padding: 2px 0 2px 12px; margin-bottom: 10px; }
+  .key-finding .kf-t { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 2px; letter-spacing: -0.005em; }
+  .key-finding .kf-s { font-size: 11.5px; color: var(--mm-fg-2); line-height: 1.5; }
+  .kf-num { font-family: var(--mm-font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--mm-fg-1); }
+
+  /* bottom line */
+  .bl { border: 1px solid var(--mm-ink); border-radius: 8px; background: var(--mm-ink); color: var(--mm-paper); padding: 14px 16px; margin-top: auto; }
+  .bl .eb { font: 600 9px var(--mm-font-sans); letter-spacing: 0.12em; text-transform: uppercase; color: #B5BAE8; }
+  .bl h3 { font-family: var(--mm-font-serif); font-size: 18px; font-weight: 500; margin: 2px 0 4px; color: var(--mm-paper); letter-spacing: -0.005em; }
+  .bl p { font-size: 12px; color: #D8D6CB; margin: 0; line-height: 1.55; max-width: none; }
+  .bl em { color: var(--mm-paper); font-style: italic; }
+
+  /* footer */
+  .ftr { display: flex; justify-content: space-between; font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); padding-top: 10px; border-top: 1px solid var(--mm-border); margin-top: 4px; }
+
+  /* paper modes */
+  body.paper-white { --mm-paper: #FFFFFF; }
+  body.paper-cool  { --mm-paper: #F5F6F8; }
+  body.paper-warm  { --mm-paper: #F7F5EC; }
+
+  /* dense layout */
+  body.dense .page { padding: 0.45in 0.55in; gap: 12px; }
+  body.dense .hl h1 { font-size: 36px; }
+  body.dense section h2 { font-size: 15px; }
+  body.dense .key-finding { margin-bottom: 7px; }
+  body.dense table { font-size: 11px; }
+  body.dense th, body.dense td { padding: 5px 12px; }
+
+  /* tweaks panel */
+  .mm-tweaks { position: fixed; bottom: 20px; right: 20px; width: 260px; background: #FFFFFF; border: 1px solid var(--mm-border); border-radius: 12px; box-shadow: 0 20px 48px rgba(26, 26, 36, 0.18); padding: 14px 16px 16px; z-index: 50; font-family: var(--mm-font-sans); display: none; }
+  .mm-tweaks.is-open { display: block; }
+  .mm-tweaks h4 { font: 600 11px var(--mm-font-sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mm-fg-3); margin: 0 0 12px; }
+  .mm-tw-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .mm-tw-row label { font: 600 10px var(--mm-font-sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--mm-fg-2); }
+  .mm-tw-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--mm-bg-2); border-radius: 7px; padding: 3px; }
+  .mm-tw-seg button { border: 0; background: transparent; padding: 6px 4px; font: 600 11px var(--mm-font-sans); color: var(--mm-fg-2); cursor: pointer; border-radius: 5px; }
+  .mm-tw-seg button.is-active { background: #fff; color: var(--mm-fg-1); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .mm-tw-sw { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .mm-tw-sw span { font: 500 12px var(--mm-font-sans); color: var(--mm-fg-1); }
+  .mm-tw-toggle { width: 32px; height: 18px; background: var(--mm-slate-100); border-radius: 999px; position: relative; cursor: pointer; border: 0; transition: background 140ms; flex-shrink: 0; }
+  .mm-tw-toggle::after { content:""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: transform 140ms; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+  .mm-tw-toggle.is-on { background: var(--mm-indigo); }
+  .mm-tw-toggle.is-on::after { transform: translateX(14px); }
+  .mm-tw-swatches { display: flex; gap: 6px; }
+  .mm-tw-swatches button { width: 26px; height: 26px; border-radius: 6px; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .mm-tw-swatches button.is-active { border-color: var(--mm-fg-1); }
+
+  @media print { .mm-tweaks { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hdr">
+    <div class="hdr-l">
+      <img src="assets/logo-mark.svg?v=1776660628163" width="40" height="40" alt="">
+      <div>
+        <div class="doctype">Research findings · v1</div>
+        <div style="font-family: var(--mm-font-serif); font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">MarketMind</div>
+      </div>
+    </div>
+    <div class="hdr-meta">
+      <div>Polymarket calibration · Jan 2022 to Apr 2026</div>
+      <div>4,538 markets · 639,807 snapshots</div>
+    </div>
+  </header>
+
+  <div class="hl">
+    <div class="eb">Finding</div>
+    <h1>Polymarket is efficient. We could not beat it.</h1>
+    <p class="sub">
+      We asked whether binary prediction markets on Polymarket carry structural inefficiencies
+      that an ML model can exploit. Across four independent attempts (a structural rule,
+      calibration correction, trajectory dynamics, and a global ML regressor), none produced
+      a material improvement over the market price alone on held-out test markets.
+    </p>
+  </div>
+
+  <div class="verdict">
+    <div class="v-tile"><div class="v-lbl">Brier score</div><div class="v-val">0.0892</div><div class="v-sub">all markets · lower is better</div></div>
+    <div class="v-tile"><div class="v-lbl">Reliability</div><div class="v-val">0.0004</div><div class="v-sub">≈ perfect calibration</div></div>
+    <div class="v-tile"><div class="v-lbl">ECE</div><div class="v-val">1.35%</div><div class="v-sub">expected calibration error</div></div>
+    <div class="v-tile"><div class="v-lbl">Best Δ Brier</div><div class="v-val">−0.0006</div><div class="v-sub">hybrid · 0.7% improvement</div></div>
+  </div>
+
+  <div class="evidence">
+    <div class="chart-wrap">
+      <div class="ch">Reliability diagram</div>
+      <div class="ch-sub">All markets · snapshot level · predicted vs. actual</div>
+      <svg viewBox="0 0 340 230" width="100%" preserveAspectRatio="xMidYMid meet">
+        <g stroke="#EAE8E0" stroke-width="1">
+          <line x1="40" y1="12" x2="326" y2="12"/>
+          <line x1="40" y1="64" x2="326" y2="64"/>
+          <line x1="40" y1="116" x2="326" y2="116"/>
+          <line x1="40" y1="168" x2="326" y2="168"/>
+          <line x1="40" y1="206" x2="326" y2="206"/>
+        </g>
+        <g font-family="JetBrains Mono, monospace" font-size="9" fill="#76746A">
+          <text x="34" y="210" text-anchor="end">0.00</text>
+          <text x="34" y="172" text-anchor="end">0.25</text>
+          <text x="34" y="120" text-anchor="end">0.50</text>
+          <text x="34" y="68" text-anchor="end">0.75</text>
+          <text x="34" y="16" text-anchor="end">1.00</text>
+          <text x="40" y="222">0.0</text>
+          <text x="183" y="222" text-anchor="middle">0.5</text>
+          <text x="326" y="222" text-anchor="end">1.0</text>
+        </g>
+        <text x="12" y="110" transform="rotate(-90 12 110)" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" font-weight="600" fill="#76746A" letter-spacing="0.06em">ACTUAL RATE</text>
+        <text x="183" y="232" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" font-weight="600" fill="#76746A" letter-spacing="0.06em">PREDICTED PROBABILITY</text>
+        <line x1="40" y1="206" x2="326" y2="12" stroke="#9B988C" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <polyline points="55,196 84,184 113,163 142,135 171,108 200,80 229,52 258,30 287,18 316,14" fill="none" stroke="var(--mm-indigo)" stroke-width="2"/>
+        <g fill="var(--mm-indigo)">
+          <circle cx="55" cy="196" r="3"/><circle cx="84" cy="184" r="3"/><circle cx="113" cy="163" r="3"/><circle cx="142" cy="135" r="3"/><circle cx="171" cy="108" r="3"/><circle cx="200" cy="80" r="3"/><circle cx="229" cy="52" r="3"/><circle cx="258" cy="30" r="3"/><circle cx="287" cy="18" r="3"/><circle cx="316" cy="14" r="3"/>
+        </g>
+        <g font-family="Inter, sans-serif" font-size="9" font-weight="600">
+          <rect x="224" y="172" width="96" height="26" fill="#fff" stroke="#EAE8E0" rx="4"/>
+          <line x1="232" y1="181" x2="248" y2="181" stroke="#9B988C" stroke-width="1.4" stroke-dasharray="3 2"/>
+          <text x="252" y="184" fill="#76746A">Perfect</text>
+          <line x1="232" y1="192" x2="248" y2="192" stroke="var(--mm-indigo)" stroke-width="2"/>
+          <text x="252" y="195" fill="#1A1A24">Polymarket</text>
+        </g>
+      </svg>
+      <div class="cap">The blue curve hugs the diagonal. Residual wiggle is the favourite-longshot bias.</div>
+    </div>
+
+    <div class="split-block">
+      <div class="ch">Split stability</div>
+      <div class="ch-sub">Train → val → test · temporally ordered</div>
+      <table>
+        <thead><tr><th>Split</th><th>Markets</th><th>Brier</th><th>Rel.</th></tr></thead>
+        <tbody>
+          <tr><td>Train · 22 to 24</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">2,832</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0872</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0003</td></tr>
+          <tr><td>Val · H1 25</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">719</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0889</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0006</td></tr>
+          <tr><td>Test · H2 25+</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">987</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0901</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0004</td></tr>
+        </tbody>
+      </table>
+      <div class="cap">No temporal drift. Reliability stays at the noise floor across all three splits. The market didn’t get dumber or smarter, it just kept being the market.</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="eb-section">Exploitation attempts · four tries, four failures</div>
+    <table class="attempts-table">
+      <thead>
+        <tr><th>Attempt</th><th>Approach</th><th>Δ Brier</th><th>Verdict</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Structural alpha-shift</td>
+          <td>Bet YES on long-horizon low-liquidity markets; assume systematic under-pricing.</td>
+          <td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">+0.1495</td>
+          <td><span class="pill pill-danger">Failed</span></td>
+        </tr>
+        <tr>
+          <td>Recalibration</td>
+          <td>Platt / isotonic / per-category recalibration of the favourite-longshot bias.</td>
+          <td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">−0.0001</td>
+          <td><span class="pill pill-warn">Negligible</span></td>
+        </tr>
+        <tr>
+          <td>Trajectory dynamics</td>
+          <td>XGB on staleness, volatility regime, curvature; blended 45/55 with market price.</td>
+          <td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">−0.0006</td>
+          <td><span class="pill pill-info">Marginal</span></td>
+        </tr>
+        <tr>
+          <td>ML correction</td>
+          <td>RF / XGB regressor on market-error target; full cross-market feature set.</td>
+          <td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">+0.012</td>
+          <td><span class="pill pill-danger">Failed</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="eb-section">Where the market <em style="font-style:italic;color:var(--mm-ink);">is</em> wrong</div>
+    <div class="findings-grid">
+      <div class="key-finding">
+        <div class="kf-t">Government policy under-prices longshots</div>
+        <div class="kf-s">A <span class="kf-num">+17.4pp</span> longshot bias on government-policy markets. Low-probability events resolve more often than prices imply. Too small-n (<span class="kf-num">189</span>) to trade reliably.</div>
+      </div>
+      <div class="key-finding">
+        <div class="kf-t">Long horizons drift</div>
+        <div class="kf-s">Calibration degrades <span class="kf-num">~5×</span> from &lt;1d (Brier 0.013) to 3 to 12 months (0.094). &gt;1y markets show meaningful miscalibration, ECE <span class="kf-num">0.101</span>.</div>
+      </div>
+      <div class="key-finding">
+        <div class="kf-t">Sports is the gold standard</div>
+        <div class="kf-s">Best-calibrated large category: Brier <span class="kf-num">0.0650</span> across <span class="kf-num">2,099</span> markets. Deep liquidity + short horizons + frequent resolution discipline the crowd.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="bl">
+    <div class="eb">Bottom line</div>
+    <h3>The crowd wins, but we now know where and why.</h3>
+    <p>
+      Polymarket's crowd aggregates information well and calibrates probabilities accurately
+      (reliability <span class="kf-num" style="color:var(--mm-paper);">0.0004</span>). Residual
+      miscalibration lives in under-sampled categories (government policy, geopolitics) and at
+      very long horizons, pockets too small or too fragile to trade systematically. The most
+      valuable output of this project is the <em>characterization</em> of where and how the
+      market works, not a model that beats it.
+    </p>
+  </div>
+
+  <footer class="ftr">
+    <span>MarketMind Research · gianguyen7/marketmind</span>
+    <span>Print: ⌘P / Ctrl-P · one-page letter</span>
+  </footer>
+
+</div>
+
+<!-- Tweaks panel -->
+<aside class="mm-tweaks" id="mm-tweaks" aria-label="Tweaks">
+  <h4>Tweaks</h4>
+  <div class="mm-tw-row">
+    <label>Accent</label>
+    <div class="mm-tw-swatches" id="tw-accent">
+      <button data-v="#4F5BD5" style="background:#4F5BD5" title="Indigo"></button>
+      <button data-v="#2F6BE2" style="background:#2F6BE2" title="Blue"></button>
+      <button data-v="#0F766E" style="background:#0F766E" title="Teal"></button>
+      <button data-v="#C2410C" style="background:#C2410C" title="Rust"></button>
+      <button data-v="#1A1A24" style="background:#1A1A24" title="Ink"></button>
+    </div>
+  </div>
+  <div class="mm-tw-row">
+    <label>Paper</label>
+    <div class="mm-tw-seg" id="tw-paper">
+      <button data-v="warm">Warm</button>
+      <button data-v="white">White</button>
+      <button data-v="cool">Cool</button>
+    </div>
+  </div>
+  <div class="mm-tw-row mm-tw-sw"><span>Verdict strip</span><button class="mm-tw-toggle" id="tw-verdict" aria-label="Toggle verdict strip"></button></div>
+  <div class="mm-tw-row mm-tw-sw"><span>Reliability chart</span><button class="mm-tw-toggle" id="tw-chart" aria-label="Toggle chart"></button></div>
+  <div class="mm-tw-row mm-tw-sw"><span>Dense layout</span><button class="mm-tw-toggle" id="tw-dense" aria-label="Toggle dense layout"></button></div>
+</aside>
+
+<script>
+/* ---- Wire to real data from outputs/tables/ ---- */
+(async function loadData() {
+  var DATA = '../../outputs/tables';
+
+  function parseLine(line) {
+    var vals = [], cur = '', q = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (c === '"') q = !q;
+      else if (c === ',' && !q) { vals.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    vals.push(cur.trim());
+    return vals;
+  }
+
+  function parseCSV(text) {
+    var lines = text.trim().split('\n');
+    var hdr = parseLine(lines[0]);
+    return lines.slice(1).filter(function(l){return l.trim();}).map(function(line) {
+      var v = parseLine(line), row = {};
+      hdr.forEach(function(h, i) {
+        var s = (v[i]||'').trim();
+        if (s===''||s==='inf'||s==='nan') row[h]=null;
+        else if (!isNaN(s)&&s!=='') row[h]=parseFloat(s);
+        else row[h]=s;
+      });
+      return row;
+    });
+  }
+
+  async function csv(f) { var r = await fetch(DATA+'/'+f); return parseCSV(await r.text()); }
+  async function json(f) { var r = await fetch(DATA+'/'+f); return r.json(); }
+
+  try {
+    var results = await Promise.all([
+      csv('brier_decomposition.csv'),
+      json('b5_results_2026-04-12.json'),
+      csv('c1_recalibration_results_2026-04-12.csv'),
+      json('c4_results_2026-04-12.json'),
+      csv('favourite_longshot_bias.csv'),
+      csv('fl_bias_per_category.csv'),
+      csv('calibration_by_category.csv'),
+      csv('calibration_by_horizon.csv'),
+    ]);
+    var brier=results[0], b5=results[1], c1=results[2], c4=results[3];
+    var flBias=results[4], flCat=results[5], cats=results[6], horizons=results[7];
+
+    var allRow = brier.find(function(r){return r.split==='all';});
+    var splits = brier.filter(function(r){return r.split!=='all';});
+
+    /* -- Header counts -- */
+    var metaDivs = document.querySelectorAll('.hdr-meta div');
+    if (metaDivs[1]) metaDivs[1].textContent = allRow.n_markets.toLocaleString()+' markets \u00b7 '+allRow.n.toLocaleString()+' snapshots';
+
+    /* -- Verdict tiles -- */
+    var tiles = document.querySelectorAll('.v-tile');
+    tiles[0].querySelector('.v-val').textContent = allRow.brier_score.toFixed(4);
+    tiles[1].querySelector('.v-val').textContent = allRow.reliability.toFixed(4);
+    tiles[2].querySelector('.v-val').textContent = (allRow.ece*100).toFixed(2)+'%';
+
+    var c4d = c4.test_results.hybrid.brier - c4.test_results.naive_brier;
+    var c4pct = ((c4.test_results.naive_brier - c4.test_results.hybrid.brier)/c4.test_results.naive_brier*100).toFixed(1);
+    tiles[3].querySelector('.v-val').textContent = '\u2212'+Math.abs(c4d).toFixed(4);
+    tiles[3].querySelector('.v-sub').textContent = 'hybrid \u00b7 '+c4pct+'% improvement';
+
+    /* -- Reliability diagram -- */
+    var chartData = flBias
+      .filter(function(r){return r.bucket_mid!=null && r.actual_rate!=null;})
+      .sort(function(a,b){return a.bucket_mid-b.bucket_mid;});
+
+    var toX = function(v){return 40+v*286;};
+    var toY = function(v){return 206-v*194;};
+
+    var poly = document.querySelector('.chart-wrap polyline');
+    if (poly) poly.setAttribute('points', chartData.map(function(d){return toX(d.bucket_mid)+','+toY(d.actual_rate);}).join(' '));
+
+    var cg = document.querySelector('.chart-wrap g[fill="var(--mm-indigo)"]');
+    if (cg) cg.innerHTML = chartData.map(function(d){
+      return '<circle cx="'+toX(d.bucket_mid)+'" cy="'+toY(d.actual_rate)+'" r="3"/>';
+    }).join('');
+
+    /* -- Split stability table -- */
+    var splitRows = document.querySelectorAll('.split-block tbody tr');
+    splits.forEach(function(r,i) {
+      if (!splitRows[i]) return;
+      var cells = splitRows[i].querySelectorAll('td');
+      if (cells[1]) cells[1].textContent = r.n_markets.toLocaleString();
+      if (cells[2]) cells[2].textContent = r.brier_score.toFixed(4);
+      if (cells[3]) cells[3].textContent = r.reliability.toFixed(4);
+    });
+
+    /* -- Exploitation attempts deltas -- */
+    var attRows = document.querySelectorAll('.attempts-table tbody tr');
+    var fmt = function(d){return (d>=0?'+':'\u2212')+Math.abs(d).toFixed(4);};
+
+    var b5t = b5.phase2.splits.test;
+    var b5d = (b5t.brier_rule_struct||b5t.brier_rule) - (b5t.brier_naive_struct||b5t.brier_naive);
+    if (attRows[0]) attRows[0].querySelector('.num').textContent = fmt(b5d);
+
+    var c1t = c1.filter(function(r){return r.split==='test';});
+    var c1n = c1t.find(function(r){return r.model&&r.model.indexOf('naive')>=0;});
+    var c1o = c1t.filter(function(r){return r.model&&r.model.indexOf('naive')<0;});
+    var c1b = c1o.reduce(function(a,b){return a.brier<b.brier?a:b;});
+    var c1d = c1b.brier - c1n.brier;
+    if (attRows[1]) attRows[1].querySelector('.num').textContent = fmt(c1d);
+
+    if (attRows[2]) attRows[2].querySelector('.num').textContent = fmt(c4d);
+
+    /* -- Key findings -- */
+    var findings = document.querySelectorAll('.key-finding');
+
+    // Finding 1: Government policy longshot bias
+    var govPol = flCat.find(function(r){return r.category==='government_policy';});
+    var govCat = cats.find(function(r){return r.category==='government_policy';});
+    if (findings[0] && govPol) {
+      var nums0 = findings[0].querySelectorAll('.kf-num');
+      if (nums0[0]) nums0[0].textContent = '+'+Math.abs(govPol.longshot_bias*100).toFixed(1)+'pp';
+      if (nums0[1] && govCat) nums0[1].textContent = govCat.n_markets.toLocaleString();
+    }
+
+    // Finding 2: Long horizons drift
+    var hShort = horizons.find(function(r){return r.horizon==='<1d';}) || horizons[0];
+    var hMed = horizons.find(function(r){return r.horizon==='3m-1y';});
+    var hLong = horizons.find(function(r){return r.horizon==='>1y';});
+    if (findings[1] && hShort && hMed) {
+      var ratio = Math.round(hMed.brier_score / hShort.brier_score);
+      var nums1 = findings[1].querySelectorAll('.kf-num');
+      if (nums1[0]) nums1[0].textContent = '~'+ratio+'\u00d7';
+      if (hLong && nums1[1]) nums1[1].textContent = (hLong.ece*100).toFixed(1)+'%';
+      // Update inline Brier values in text
+      var kfText = findings[1].querySelector('.kf-s');
+      if (kfText) {
+        kfText.innerHTML = 'Calibration degrades <span class="kf-num">~'+ratio+'\u00d7</span> from &lt;1d (Brier '+hShort.brier_score.toFixed(3)+') to 3\u201312 months ('+hMed.brier_score.toFixed(3)+'). &gt;1y markets show meaningful miscalibration, ECE <span class="kf-num">'+(hLong?(hLong.ece*100).toFixed(1)+'%':'N/A')+'</span>.';
+      }
+    }
+
+    // Finding 3: Sports
+    var sports = cats.find(function(r){return r.category==='sports';});
+    if (findings[2] && sports) {
+      var nums2 = findings[2].querySelectorAll('.kf-num');
+      if (nums2[0]) nums2[0].textContent = sports.brier_score.toFixed(4);
+      if (nums2[1]) nums2[1].textContent = sports.n_markets.toLocaleString();
+    }
+
+    /* -- Bottom line reliability -- */
+    var blNum = document.querySelector('.bl .kf-num');
+    if (blNum) blNum.textContent = allRow.reliability.toFixed(4);
+
+    console.log('One-pager: loaded real data from outputs/tables/');
+  } catch(e) {
+    console.warn('One-pager: data load failed, using fallback values.', e.message);
+  }
+})();
+</script>
+
+<script>
+(function(){
+  const DEFAULTS = /*EDITMODE-BEGIN*/{
+    "accent": "#4F5BD5",
+    "paper": "warm",
+    "showVerdict": true,
+    "showChart": true,
+    "dense": true
+  }/*EDITMODE-END*/;
+  const state = Object.assign({}, DEFAULTS);
+
+  function apply() {
+    document.documentElement.style.setProperty('--mm-indigo', state.accent);
+    // derive hover/press variants = same (keep simple)
+    document.body.classList.remove('paper-warm','paper-white','paper-cool');
+    document.body.classList.add('paper-' + state.paper);
+    document.body.classList.toggle('dense', !!state.dense);
+    const verdictEl = document.querySelector('.verdict');
+    if (verdictEl) verdictEl.style.display = state.showVerdict ? '' : 'none';
+    const chartEl = document.querySelector('.chart-wrap');
+    if (chartEl) chartEl.style.display = state.showChart ? '' : 'none';
+    // sync UI
+    document.querySelectorAll('#tw-accent button').forEach(b => b.classList.toggle('is-active', b.dataset.v === state.accent));
+    document.querySelectorAll('#tw-paper button').forEach(b => b.classList.toggle('is-active', b.dataset.v === state.paper));
+    document.getElementById('tw-verdict').classList.toggle('is-on', !!state.showVerdict);
+    document.getElementById('tw-chart').classList.toggle('is-on', !!state.showChart);
+    document.getElementById('tw-dense').classList.toggle('is-on', !!state.dense);
+  }
+  function persist(edits) {
+    try { window.parent.postMessage({type:'__edit_mode_set_keys', edits}, '*'); } catch(e){}
+  }
+  function set(k, v) { state[k] = v; apply(); persist({[k]: v}); }
+
+  document.querySelectorAll('#tw-accent button').forEach(b => b.addEventListener('click', () => set('accent', b.dataset.v)));
+  document.querySelectorAll('#tw-paper button').forEach(b => b.addEventListener('click', () => set('paper', b.dataset.v)));
+  document.getElementById('tw-verdict').addEventListener('click', () => set('showVerdict', !state.showVerdict));
+  document.getElementById('tw-chart').addEventListener('click', () => set('showChart', !state.showChart));
+  document.getElementById('tw-dense').addEventListener('click', () => set('dense', !state.dense));
+
+  // Register edit-mode listener BEFORE announcing
+  window.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type === '__activate_edit_mode') document.getElementById('mm-tweaks').classList.add('is-open');
+    if (d.type === '__deactivate_edit_mode') document.getElementById('mm-tweaks').classList.remove('is-open');
+  });
+  try { window.parent.postMessage({type:'__edit_mode_available'}, '*'); } catch(e){}
+
+  apply();
+})();
+</script>
+</body>
+</html>

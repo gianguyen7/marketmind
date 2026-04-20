@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MarketMind &middot; Calibration Research</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="Primitives.jsx"></script>
+<script type="text/babel" src="DataLoader.jsx"></script>
+<script type="text/babel" src="Charts.jsx"></script>
+<script type="text/babel" src="Sidebar.jsx"></script>
+<script type="text/babel" src="Pages.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+function App() {
+  const [active, setActive] = useState(() => localStorage.getItem("mm-page") || "overview");
+  useEffect(() => { localStorage.setItem("mm-page", active); }, [active]);
+  return (
+    <div className="mm-app">
+      <Sidebar active={active} onNavigate={setActive}/>
+      <main className="mm-main">
+        {active === "overview" && <OverviewPage/>}
+        {active === "calibration" && <CalibrationPage/>}
+        {active === "fl" && <FLBiasPage/>}
+        {active === "exploit" && <ExploitPage/>}
+        {active === "data" && <DataPage/>}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
