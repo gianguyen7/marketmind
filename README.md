@@ -1,27 +1,52 @@
 # MarketMind
 
-Research pipeline investigating **where and when prediction markets are miscalibrated**, and whether ML models can exploit those systematic errors.
+**Can you beat a prediction market?** We tried four different ways across 4,538 Polymarket markets and 639,807 price snapshots. The answer: no. But we now know exactly where and why the crowd gets it right.
 
-## Research Question
+## Deliverables
 
-> No published work trains ML models to detect and exploit systematic Polymarket miscalibration patterns. We aim to fill that gap.
+<!-- Screenshots: run `python scripts/take_screenshots.py` with serve.py running to regenerate -->
+![Findings One-Pager](docs/screenshots/one-pager.png)
 
-**Core question**: Where and when are prediction markets miscalibrated, and can ML models exploit those systematic errors?
+| | |
+|---|---|
+| **[Interactive Dashboard](src/dashboard/index.html)** | Five-page React SPA exploring calibration, bias, exploitation attempts, and data |
+| **[Findings One-Pager](src/dashboard/one-pager.html)** | Print-ready single-page research summary (pictured above) |
 
-**Research flow**:
-1. **Characterize** Polymarket calibration by domain, time horizon, and market structure
-2. **Identify** systematic biases (favourite-longshot patterns, domain-specific miscalibration)
-3. **Build ML models** that predict market errors — correcting the market, not replacing it
-4. **Evaluate** via Brier decomposition: does ML correction improve calibration, resolution, or sharpness?
+**Live version:** Once GitHub Pages is enabled, both are available at `https://<username>.github.io/marketmind/`
 
-## Key Findings (In Progress)
+**View locally:**
+
+```bash
+python src/dashboard/serve.py   # serves at http://localhost:8000
+# then open:
+#   http://localhost:8000/src/dashboard/index.html
+#   http://localhost:8000/src/dashboard/one-pager.html
+```
+
+## Key Findings
 
 | Finding | Detail |
 |---|---|
-| Government shutdown mispriced | Brier 0.48 — market prices ~26% but actual resolution rate 74% |
-| Calibration degrades at longer horizons | Brier 0.013 (<1 day) → 0.094 (3-12 months), ~5x worse |
-| Reverse favourite-longshot bias | Favourites win MORE than prices imply (+7.7% bias for price > 0.7) |
-| Market well-calibrated overall | Reliability = 0.003 (very low), but systematic domain-specific errors |
+| Polymarket is efficient | Brier 0.0786, reliability 0.0004 (near-perfect calibration) |
+| Four exploitation attempts failed | Structural rule, recalibration, trajectory dynamics, global ML |
+| Best model: 0.7% improvement | Hybrid (45% XGB + 55% market price), not enough to be actionable |
+| Favourite-longshot bias is real but small | Longshots under-priced by ~5pp, favourites over-priced by ~4pp |
+| Government policy is worst-calibrated | +17.4pp longshot bias, but only 43 markets (too fragile to trade) |
+| Sports is the gold standard | Brier 0.0650, 2,099 markets, deep liquidity disciplines the crowd |
+| Long horizons degrade calibration | ECE goes from 1.4% (<1d) to 10.1% (>1y) |
+
+## Research Question
+
+> Where and when are prediction markets miscalibrated, and can ML models exploit those systematic errors?
+
+We investigated this through four independent approaches:
+
+1. **Structural alpha-shift** on long-horizon low-liquidity markets (+0.1495 Brier, failed)
+2. **Calibration correction** via Platt/isotonic recalibration (-0.0001 Brier, negligible)
+3. **Trajectory dynamics** using staleness, volatility, curvature (-0.0006 Brier, marginal)
+4. **Global ML correction** with cross-market feature set (+0.012 Brier, failed)
+
+**Conclusion:** The crowd aggregates information well and calibrates probabilities accurately. Residual miscalibration lives in under-sampled categories and very long horizons, pockets too small or too fragile to trade systematically.
 
 ## Quick Start
 
@@ -29,91 +54,59 @@ Research pipeline investigating **where and when prediction markets are miscalib
 # Setup
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # add API keys (FRED_API_KEY for economic data)
 
-# Run calibration analysis (research output)
+# Run calibration analysis
 python scripts/run_calibration_analysis.py
 
-# Run model training + evaluation
-python scripts/run_training.py
-python scripts/run_evaluation.py
+# Run exploitation experiments
+python scripts/run_b5_walkforward.py
+python scripts/run_c1_recalibration.py
+python scripts/run_c4_trajectory.py
 
-# Launch dashboard
-streamlit run src/dashboard/app.py
+# View results
+python src/dashboard/serve.py
 
 # Tests
 pytest tests/
 ```
 
+## Data
+
+**4,538 resolved binary markets** from Polymarket (Jan 2022 to Apr 2026) across 11 categories: sports, politics, crypto, geopolitics, government policy, science/tech, entertainment, social media, economy, fed policy, and more.
+
+**639,807 price snapshots** at 12-hour intervals. This dataset is irreplaceable through current APIs (Polymarket's CLOB v2 migration truncated history to a 31-day window).
+
 ## Project Structure
 
 ```
-configs/
-  data.yaml              # API endpoints, pipeline settings, split strategy
-  modeling.yaml           # Model hyperparameters, evaluation config
-  calendar.yaml           # FOMC meeting dates, CPI release schedule
-  experiments/            # Experiment configs (baseline, market_correction, ensemble)
-data/
-  raw/                    # API responses (market metadata + price snapshots)
-  interim/                # Enriched snapshots with temporal features
-  processed/              # Train/val/test splits with market error targets
-  external/               # FRED, futures, GDELT cached data
-src/
-  data/                   # Polymarket API fetching, outcome resolution, dataset building
-  features/               # Market, cross-market, economic, calendar, text features
-  models/                 # Baselines, classifiers, regressors, hybrid models
-  evaluation/             # Calibration analysis, Brier decomposition, model comparison
-  dashboard/              # Streamlit app
-scripts/                  # CLI entry points for each pipeline stage
-tests/                    # pytest suite
-outputs/                  # Figures, tables, saved models, predictions
-docs/                     # Research plans and documentation
-memory/                   # Persistent context for Claude Code sessions
+src/dashboard/           Interactive dashboard + findings one-pager (React, no build step)
+configs/                 YAML configs (data, modeling, experiments)
+data/raw/                Raw API responses (5,000 markets, 640K snapshots)
+data/processed/          Train/val/test splits (temporal, category-stratified)
+src/data/                Fetching, resolution, dataset building
+src/features/            Feature engineering (trajectory, cross-market)
+src/models/              Model definitions + training
+src/evaluation/          Backtesting, calibration, metrics
+scripts/                 CLI entry points for each pipeline stage
+tests/                   pytest suite
+outputs/                 Figures, tables, models
+docs/                    Research plans, results summary, data documentation
 ```
 
-## Data
+## Evaluation Methodology
 
-**Current**: 95 resolved binary markets from Polymarket (Fed rate decisions, government shutdown, leadership, recession). 25K snapshots at 12-hour intervals.
-
-**Expanding to**: ~5,000 resolved markets across politics, sports, crypto, geopolitics, entertainment, science — all with >$1M volume. See `docs/data_expansion_plan.md`.
-
-**External data sources** (planned/in progress):
-- FRED economic data (Treasury yields, VIX, CPI, unemployment)
-- Fed Funds futures (institutional rate expectations via yfinance)
-- FOMC/economic calendar
-- GDELT news sentiment
-
-## Experiments
-
-| Experiment | Question | Target | Models |
-|---|---|---|---|
-| `baseline` | How good is the market alone? | `resolved_yes` | base_rate, recency (market price) |
-| `market_correction` | Can ML predict where the market is wrong? | `market_error` (regression) | linear regression, RF regressor, XGBoost regressor |
-| `ensemble` | Does blending ML correction with price improve calibration? | `resolved_yes` | logistic, RF, XGBoost (with cross-market features) |
-
-## Evaluation
-
-- **Brier decomposition**: reliability + resolution + uncertainty (not just aggregate Brier)
-- **Market-level metrics**: one prediction per market (n=95) alongside snapshot-level (n=25K)
+- **Brier decomposition**: reliability + resolution + uncertainty
+- **Temporal splits only**: train < cutoff < val < cutoff < test (no shuffling, no leakage)
+- **Category-stratified**: 60/20/20 within each of 11 categories
 - **Calibration curves**: sliced by domain, time horizon, and price bucket
-- **Favourite-longshot bias analysis**: systematic over/under-pricing detection
-- **Temporal integrity**: event-group splits prevent correlated market leakage
+- **Favourite-longshot bias**: per-category and per-horizon analysis
+- **Walk-forward validation**: rules frozen on train, evaluated on genuinely future markets
 
 ## Related Work
 
-| Study | Contribution | Gap we address |
+| Study | Contribution | Our addition |
 |---|---|---|
-| Le (2026) "Decomposing Crowd Wisdom" | Calibration varies by domain | Nobody built ML to exploit these patterns |
-| Reichenbach & Walther (SSRN) | 124M trades analyzed, prices track probabilities | Descriptive only, no ML modeling |
-| Page & Clemen (2013) | Favourite-longshot bias at long horizons | No ML correction attempted on Polymarket |
-| ForecastBench | LLMs vs superforecasters | Different domain, not market correction |
-
-## Agent Workflow
-
-For agent-assisted development:
-
-- **data-agent**: Fetch markets, resolve outcomes, build datasets
-- **feature-agent**: Engineer and validate features
-- **model-agent**: Train models, tune hyperparameters
-- **eval-agent**: Run backtests, compute metrics
-- **report-agent**: Generate figures, update dashboard
+| Le (2026) "Decomposing Crowd Wisdom" | Calibration varies by domain | ML exploitation attempts + characterization at scale |
+| Reichenbach & Walther (SSRN) | 124M trades analyzed, prices track probabilities | Four independent beating attempts, all failed |
+| Page & Clemen (2013) | Favourite-longshot bias at long horizons | Quantified per-category on Polymarket (11 categories) |
+| ForecastBench | LLMs vs superforecasters | Market prices vs ML correction (different framing) |

@@ -30,6 +30,20 @@ polymarket:
     enabled: true
     path: "data/raw/.checkpoint_snapshots.json"
 
+  # Bulk fetch from Gamma API (Track B1 — data expansion).
+  # Used by src/data/fetch_gamma.py and the --gamma-fetch flag in
+  # scripts/run_data_pipeline.py. The existing curated-registry pipeline
+  # still runs unchanged when --gamma-fetch is not passed.
+  gamma_fetch:
+    min_volume_usd: 1000000      # only fetch markets with >= $1M lifetime volume
+    binary_only: true             # require len(outcomes) == 2
+    closed_only: true             # only fetch resolved markets
+    max_markets: 5000             # safety cap; set lower via --max-markets
+    checkpoint_path: "data/raw/.checkpoint_gamma_snapshots.json"
+    # Dry-run scratch path — used when --dry-run is passed. Never writes to
+    # data/raw/gamma_*.parquet in dry-run mode.
+    dry_run_dir: "data/raw/scratch"
+
 data_pipeline:
   raw_dir: "data/raw"
   interim_dir: "data/interim"

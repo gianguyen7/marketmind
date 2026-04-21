@@ -49,6 +49,11 @@ CATEGORY_PATTERNS = {
         r"\b(president|governor|senator|congress|mayor)\b.*\b(win|elected|nominee)\b",
         r"\b(electoral|popular vote|swing state)\b",
         r"\bpresident(ial)?\b",
+        r"\bprime minister\b",
+        r"\bnext\b.*\b(chancellor|leader)\b",
+        r"\b(chancellor|bundestag)\b",
+        r"\bform.*(government|coalition)\b",
+        r"\b(poilievre|carney|liberal party)\b",
     ],
     "sports": [
         r"\b(nba|nfl|mlb|nhl|mls|epl|ucl|serie a|la liga|bundesliga|ligue 1)\b",
@@ -56,12 +61,19 @@ CATEGORY_PATTERNS = {
         r"\b(win|beat|defeat)\b.*\b(game|match|series|finals|championship)\b",
         r"\b(mvp|ballon d'or|heisman|cy young)\b",
         r"\bwin on \d{4}-\d{2}-\d{2}\b",  # "Will X win on 2026-02-17?"
+        r"\b(premier league|english premier)\b",
+        r"\b(college football|college basketball|march madness|ncaa)\b",
+        r"\b(jake paul|mike tyson|boxing|ufc|mma)\b",
+        r"\b(fifa|world cup)\b",
+        r"\w+\s+vs\.?\s+\w+",  # "Team A vs. Team B" pattern
     ],
     "crypto_finance": [
         r"\b(bitcoin|btc|ethereum|eth|solana|sol|crypto)\b",
         r"\b(price of|market cap)\b.*\b(above|below|between)\b",
         r"\b(etf|sec|approve|approval)\b.*\b(crypto|bitcoin|ethereum)\b",
         r"\btrade (above|below)\b",
+        r"\b(public sale|committed to the)\b",
+        r"\b(airdrop|token launch|megaeth|monad)\b",
     ],
     "geopolitics": [
         r"\b(war|invasion|ceasefire|peace|sanctions|troops|military)\b",
@@ -73,20 +85,38 @@ CATEGORY_PATTERNS = {
         r"\b(executive order|tariff|trade war|bill pass)\b",
         r"\b(impeach|resign|fired|cabinet)\b",
     ],
+    "social_media": [
+        r"\belon musk\b.*\b(post|tweet)\b",
+        r"\b(tweet|tweets)\b.*\b(from|between|post)\b",
+        r"\bmrbeast\b",
+        r"\b(subscriber|followers)\b.*\b(million|reach|450)\b",
+        r"\bsearched person\b.*\bgoogle\b",
+        r"\bperson of the year\b",
+    ],
     "entertainment": [
         r"\b(oscar|grammy|emmy|golden globe|academy award)\b",
         r"\b(box office|grossing movie|billboard|streaming)\b",
         r"\b(album|song|movie|film|tv show|netflix|disney)\b.*\b(#1|top|win|nominated)\b",
+        r"\bgross most\b",
+        r"\beurovision\b",
+        r"\b(spotify|tiktok)\b.*\b(artist|top|#1|ban)\b",
+        r"\btiktok\b.*\bban",
+        r"\bstranger things\b",
     ],
     "science_tech": [
         r"\b(ai|artificial intelligence|gpt|llm|openai|anthropic|google ai)\b",
         r"\b(fda|clinical trial|vaccine|drug approval)\b",
         r"\b(spacex|nasa|launch|mars|moon)\b",
         r"\b(climate|carbon|temperature|weather)\b",
+        r"\b(gemini|gpt.?5|claude|llama)\b.*\b(release|launch)\b",
+        r"\btesla\b.*\b(self.driving|fsd|autopilot)\b",
+        r"\bufo\b|declassif.*\bfile",
     ],
     "recession_economy": [
         r"\b(recession|gdp|unemployment rate|inflation rate|cpi)\b",
         r"\b(jobs report|payroll|consumer (confidence|sentiment))\b",
+        r"\b(crude oil|gold price|silver price|commodity)\b",
+        r"\blargest company.*market cap\b",
     ],
 }
 
@@ -256,11 +286,25 @@ def fetch_closed_markets(
                 "group_item_title": m.get("groupItemTitle", ""),
             })
 
+        # Respect max_markets cap at sub-page granularity. Without this trim
+        # we always round up to the next multiple of page_size (e.g.
+        # --max-markets 50 returned 100). The pre-2026-04-11 behavior was
+        # "at least max_markets, rounded up"; the fixed behavior is "at most
+        # max_markets, exact".
+        remaining = max_markets - len(all_markets)
+        if len(page_markets) > remaining:
+            print(f"  Trimming page from {len(page_markets)} to {remaining} "
+                  f"to respect max_markets={max_markets}")
+            page_markets = page_markets[:remaining]
+
         all_markets.extend(page_markets)
         offset += page_size
 
         if len(all_markets) % 500 < page_size:
             print(f"  Fetched {len(all_markets)} markets so far (offset {offset})...")
+
+        if len(all_markets) >= max_markets:
+            break
 
         time.sleep(rate_delay)
 

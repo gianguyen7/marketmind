@@ -43,9 +43,18 @@ def build_modeling_dataset(df: pd.DataFrame) -> pd.DataFrame:
     if n_dropped:
         print(f"  Dropped {n_dropped} rows missing required fields ({n_before} -> {len(df)})")
 
-    # Theme encoding
+    # Theme encoding (curated registry markets)
     if "theme" in df.columns:
         df["theme_encoded"] = df["theme"].astype("category").cat.codes
+
+    # Category encoding (Gamma bulk-fetch markets).
+    # Track A still consumes `theme_encoded`; leave it alone. `category_encoded`
+    # is additive and only populated when a `category` column is present.
+    if "category" in df.columns:
+        n_cats = df["category"].nunique(dropna=True)
+        df["category_encoded"] = df["category"].astype("category").cat.codes
+        print(f"  Category encoding: {n_cats} distinct categories "
+              f"({df['category'].isna().sum()} NaN rows get code -1)")
 
     # Volume rank (percentile across markets)
     if "volume_usd" in df.columns:
@@ -86,18 +95,33 @@ _PROXIMITY_DAYS = 30  # markets within this window = same event
 
 
 def assign_event_groups(df: pd.DataFrame) -> pd.DataFrame:
-    """Assign each market to an event group based on theme and correlation structure.
+    """Assign each market to an event group based on correlation structure.
 
-    Rules:
-    - fed_rate_decisions: group by meeting_date (mutually exclusive outcomes)
-    - fed_leadership: nominees sharing end_date are one group; others standalone
-    - government_shutdown: cluster by end_date proximity (same shutdown event)
-    - fed_rate_annual: group by end_date (same-year rate count markets)
-    - Single-market themes: each market = own group
+    Dispatches on the shape of the input:
+    - If `event_id` column is present and populated (Gamma bulk-fetch path),
+      group directly by Gamma event_id. Markets without an event_id fall back
+      to one-group-per-market.
+    - Otherwise uses the theme-based rules below (curated registry path):
+        fed_rate_decisions: group by meeting_date (mutually exclusive outcomes)
+        fed_leadership: nominees sharing end_date are one group; others standalone
+        government_shutdown: cluster by end_date proximity (same shutdown event)
+        fed_rate_annual: group by end_date (same-year rate count markets)
+        Single-market themes: each market = own group
 
     Adds 'event_group' and 'event_group_end' columns.
     """
     df = df.copy()
+
+    # Gamma path: dispatch on event_id if present and non-empty on any row.
+    # This path coexists with the theme path — if both are present, theme wins
+    # for rows that have a theme, and event_id is used for the rest. In
+    # practice the two populations do not overlap (Track A data has no
+    # event_id; Track B data has no theme).
+    has_event_id = "event_id" in df.columns and df["event_id"].astype(str).str.len().gt(0).any()
+    has_theme = "theme" in df.columns and df["theme"].notna().any()
+
+    if has_event_id and not has_theme:
+        return _assign_event_groups_gamma(df)
 
     # Build market-level metadata (one row per market)
     market_meta = (
@@ -171,6 +195,73 @@ def assign_event_groups(df: pd.DataFrame) -> pd.DataFrame:
     n_markets = df["condition_id"].nunique()
     print(f"  Assigned {n_markets} markets to {n_groups} event groups")
 
+    return df
+
+
+def _assign_event_groups_gamma(df: pd.DataFrame) -> pd.DataFrame:
+    """Event grouping for Gamma bulk-fetch markets.
+
+    Groups by Gamma event_id directly. Markets with an empty event_id
+    become their own single-market group. The event_group label is the
+    event_id (or the condition_id prefix for solo markets), and the
+    event_group_end is the max end_date within the group.
+
+    Logs the number of multi-market vs solo groups so the no-silent-
+    assumptions rule is satisfied.
+    """
+    n_before = len(df)
+    df["event_id"] = df["event_id"].fillna("").astype(str)
+
+    # Build market-level metadata for logging / label construction.
+    market_meta = (
+        df.groupby("condition_id")
+        .agg(
+            event_id=("event_id", "first"),
+            end_date=("end_date", "first"),
+            question=("question", "first"),
+        )
+        .reset_index()
+    )
+    market_meta["end_date"] = pd.to_datetime(
+        market_meta["end_date"], errors="coerce", utc=True,
+    )
+
+    group_map: dict[str, str] = {}
+    solo_count = 0
+    grouped_count = 0
+
+    # Bucket markets by event_id. Empty event_id → solo group per market.
+    for event_id, group in market_meta.groupby("event_id"):
+        if event_id == "" or len(group) == 1:
+            # Solo — label uses condition_id prefix for stability
+            for _, row in group.iterrows():
+                cid = row["condition_id"]
+                label = f"solo_{cid[:10]}"
+                group_map[cid] = label
+                solo_count += 1
+        else:
+            label = f"gamma_event_{event_id}"
+            for cid in group["condition_id"]:
+                group_map[cid] = label
+            grouped_count += len(group)
+
+    df["event_group"] = df["condition_id"].map(group_map)
+
+    # event_group_end = max end_date within each group (for temporal split order).
+    df["end_date"] = pd.to_datetime(df["end_date"], errors="coerce", utc=True)
+    group_end = (
+        df.groupby("event_group")
+        .agg(event_group_end=("end_date", "max"))
+        .reset_index()
+    )
+    df = df.merge(group_end, on="event_group", how="left")
+
+    n_groups = df["event_group"].nunique()
+    n_markets = df["condition_id"].nunique()
+    print(f"  [Gamma path] Assigned {n_markets} markets to {n_groups} event groups")
+    print(f"    {grouped_count} markets in multi-market event groups, "
+          f"{solo_count} solo markets")
+    assert len(df) == n_before, "row count changed during gamma event grouping"
     return df
 
 

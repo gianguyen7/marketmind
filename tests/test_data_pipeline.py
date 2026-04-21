@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from src.data.resolve_outcomes import validate_outcomes, add_temporal_features, add_snapshot_features
-from src.data.build_dataset import build_modeling_dataset, split_temporal
+from src.data.build_dataset import build_modeling_dataset, assign_event_groups, split_event_group_temporal
 from src.data.fetch_markets import parse_registry
 
 
@@ -157,12 +157,18 @@ def test_build_modeling_dataset():
     assert len(result) == 10  # 5 snapshots x 2 markets
 
 
-def test_split_temporal():
+def test_event_group_split():
     snap_df = make_sample_snapshots()
     snap_df = validate_outcomes(snap_df)
     snap_df = add_temporal_features(snap_df)
     snap_df = build_modeling_dataset(snap_df)
-    train, val, test = split_temporal(snap_df, "2024-08-01", "2024-09-01", "snapshot_ts")
+    snap_df = assign_event_groups(snap_df)
+    train, val, test = split_event_group_temporal(snap_df, train_frac=0.6, val_frac=0.2)
+    # All rows accounted for
     assert len(train) + len(val) + len(test) == len(snap_df)
-    if len(train) > 0 and len(test) > 0:
-        assert train["snapshot_ts"].max() < test["snapshot_ts"].min()
+    # No event group appears in multiple splits
+    all_df = pd.concat([
+        train.assign(_s="train"), val.assign(_s="val"), test.assign(_s="test")
+    ])
+    splits_per_group = all_df.groupby("event_group")["_s"].nunique()
+    assert (splits_per_group == 1).all(), "Event group split across boundaries!"

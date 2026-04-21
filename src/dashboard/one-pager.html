@@ -69,10 +69,10 @@
   .chart-wrap svg { flex: 1; min-height: 220px; }
   .chart-wrap .cap { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-top: 8px; }
   .split-block { border: 1px solid var(--mm-border); border-radius: 8px; background: #fff; padding: 12px 14px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
-  .split-block .ch { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 2px; }
-  .split-block .ch-sub { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-bottom: 10px; }
-  .split-block table { margin-top: auto; }
-  .split-block .cap { margin-top: 8px; }
+  .split-block .ch { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 8px; }
+  .split-block table { margin: 0; flex: 1; }
+  .split-block th, .split-block td { padding: 12px 12px; }
+  .split-block .cap { font: 500 10px var(--mm-font-mono); color: var(--mm-fg-3); margin-top: auto; padding-top: 8px; line-height: 1.5; }
 
   .key-finding { border-left: 2px solid var(--mm-indigo); padding: 2px 0 2px 12px; margin-bottom: 10px; }
   .key-finding .kf-t { font-family: var(--mm-font-serif); font-size: 14px; font-weight: 600; color: var(--mm-fg-1); margin-bottom: 2px; letter-spacing: -0.005em; }
@@ -101,6 +101,25 @@
   body.dense .key-finding { margin-bottom: 7px; }
   body.dense table { font-size: 11px; }
   body.dense th, body.dense td { padding: 5px 12px; }
+
+  /* tooltips */
+  .v-tile { position: relative; cursor: help; }
+  .v-tile::after {
+    content: attr(data-tip);
+    position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
+    width: 220px; padding: 8px 10px;
+    font: 400 11px/1.45 var(--mm-font-sans); color: var(--mm-paper);
+    background: var(--mm-ink); border-radius: 6px;
+    opacity: 0; pointer-events: none; transition: opacity 150ms;
+    z-index: 10; text-align: left;
+  }
+  .v-tile::before {
+    content: ''; position: absolute; left: 50%; bottom: calc(100% + 4px); transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--mm-ink);
+    opacity: 0; pointer-events: none; transition: opacity 150ms; z-index: 10;
+  }
+  .v-tile:hover::after, .v-tile:hover::before { opacity: 1; }
+  @media print { .v-tile::after, .v-tile::before { display: none; } }
 
   /* tweaks panel */
   .mm-tweaks { position: fixed; bottom: 20px; right: 20px; width: 260px; background: #FFFFFF; border: 1px solid var(--mm-border); border-radius: 12px; box-shadow: 0 20px 48px rgba(26, 26, 36, 0.18); padding: 14px 16px 16px; z-index: 50; font-family: var(--mm-font-sans); display: none; }
@@ -153,17 +172,17 @@
   </div>
 
   <div class="verdict">
-    <div class="v-tile"><div class="v-lbl">Brier score</div><div class="v-val">0.0892</div><div class="v-sub">all markets · lower is better</div></div>
-    <div class="v-tile"><div class="v-lbl">Reliability</div><div class="v-val">0.0004</div><div class="v-sub">≈ perfect calibration</div></div>
-    <div class="v-tile"><div class="v-lbl">ECE</div><div class="v-val">1.35%</div><div class="v-sub">expected calibration error</div></div>
-    <div class="v-tile"><div class="v-lbl">Best Δ Brier</div><div class="v-val">−0.0006</div><div class="v-sub">hybrid · 0.7% improvement</div></div>
+    <div class="v-tile" data-tip="How far off the predictions are on average. Measures the mean squared difference between predicted probabilities and actual outcomes. 0 is perfect, 0.25 is random guessing."><div class="v-lbl">Brier score</div><div class="v-val">0.0892</div><div class="v-sub">all markets · lower is better</div></div>
+    <div class="v-tile" data-tip="How well the stated probabilities match reality. If the market says 70%, do those events happen 70% of the time? A value near 0 means the market's confidence levels are trustworthy."><div class="v-lbl">Reliability</div><div class="v-val">0.0004</div><div class="v-sub">≈ perfect calibration</div></div>
+    <div class="v-tile" data-tip="Expected Calibration Error. The average gap between predicted probability and actual outcome rate across all confidence levels. Lower means the market rarely over- or under-states its confidence."><div class="v-lbl">ECE</div><div class="v-val">1.35%</div><div class="v-sub">expected calibration error</div></div>
+    <div class="v-tile" data-tip="The best improvement any of our four ML models achieved over simply trusting the market price. Negative means better than the market. 0.0006 is a tiny gain, not worth the complexity."><div class="v-lbl">Best Δ Brier</div><div class="v-val">−0.0006</div><div class="v-sub">hybrid · 0.7% improvement</div></div>
   </div>
 
   <div class="evidence">
     <div class="chart-wrap">
       <div class="ch">Reliability diagram</div>
       <div class="ch-sub">All markets · snapshot level · predicted vs. actual</div>
-      <svg viewBox="0 0 340 230" width="100%" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="-6 0 346 242" width="100%" preserveAspectRatio="xMidYMid meet">
         <g stroke="#EAE8E0" stroke-width="1">
           <line x1="40" y1="12" x2="326" y2="12"/>
           <line x1="40" y1="64" x2="326" y2="64"/>
@@ -201,16 +220,15 @@
 
     <div class="split-block">
       <div class="ch">Split stability</div>
-      <div class="ch-sub">Train → val → test · temporally ordered</div>
       <table>
         <thead><tr><th>Split</th><th>Markets</th><th>Brier</th><th>Rel.</th></tr></thead>
         <tbody>
-          <tr><td>Train · 22 to 24</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">2,832</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0872</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0003</td></tr>
-          <tr><td>Val · H1 25</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">719</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0889</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0006</td></tr>
-          <tr><td>Test · H2 25+</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">987</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0901</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0004</td></tr>
+          <tr><td>Train</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">2,832</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0872</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0003</td></tr>
+          <tr><td>Val</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">719</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0889</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0006</td></tr>
+          <tr><td>Test</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">987</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0901</td><td style="font-family:var(--mm-font-mono);font-variant-numeric:tabular-nums">0.0004</td></tr>
         </tbody>
       </table>
-      <div class="cap">No temporal drift. Reliability stays at the noise floor across all three splits. The market didn’t get dumber or smarter, it just kept being the market.</div>
+      <div class="cap">Splits are temporally aligned. No temporal drift. Reliability stays at the noise floor across all three splits. The market didn’t get dumber or smarter, it just kept being the market.</div>
     </div>
   </div>
 
